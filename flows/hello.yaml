@@ -1,0 +1,9 @@
+flow_variables:
+  file: tt-monkeys
+
+nodes:
+  - id: start
+    type: playback
+    file: "{{ file }}"
+    scape_digits: 0
+    sample_offset: 0

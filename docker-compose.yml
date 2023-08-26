@@ -1,0 +1,23 @@
+version: "3.7"
+services:
+  ivrflow:
+    image: ikonoim/ivrflow:dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # runtime, or dev, or test for running tests
+      target: dev
+    restart: always
+    ports:
+      - 4573:8080
+    environment:
+      GETIDDIR: /etc/getid
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - ./flows:/data/flows
+      - ./ivrflow:/ivrflow
+    logging:
+      driver: json-file
+      options:
+        max-size: 20m
+        max-file: "10"
