@@ -5,7 +5,12 @@ from mautrix.util.config import BaseFileConfig, ConfigUpdateHelper
 
 class Config(BaseFileConfig):
     def do_update(self, helper: ConfigUpdateHelper) -> None:
+        copy = helper.copy
         copy_dict = helper.copy_dict
+        # Ivrflow
+        copy("ivrflow.database")
+        copy_dict("ivrflow.database_opts")
+
         # Logging
         copy_dict("logging")
 

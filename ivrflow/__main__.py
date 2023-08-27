@@ -1,11 +1,16 @@
+import asyncio
+import sys
 from logging import Logger, getLogger
 
 from aioagi import runner
 from aioagi.app import AGIApplication
 from aioagi.log import agi_server_logger as Logger
 from aioagi.urldispathcer import AGIView
+from mautrix.util.async_db import Database, DatabaseException
 
 from .config import config
+from .db import init as init_db
+from .db import upgrade_table
 from .flow import Flow
 from .nodes import Base
 from .repository import Flow as FlowModel
@@ -15,6 +20,7 @@ log: Logger = getLogger("ivrflow.main")
 
 class IVRFlow(AGIView):
     current_node = "start"
+    db: Database
 
     async def sip(self):
         await self.algorithm()
@@ -32,12 +38,42 @@ class IVRFlow(AGIView):
         node = flow.node(self.current_node)
         await node.run()
 
+    @classmethod
+    def prepare_db(cls) -> None:
+        cls.db = Database.create(
+            config["ivrflow.database"],
+            upgrade_table=upgrade_table,
+            db_args=config["ivrflow.database_opts"],
+            owner_name="ivrflow",
+        )
+        init_db(cls.db)
+
+    @classmethod
+    async def start_db(cls) -> None:
+        log.debug("Starting database...")
+
+        try:
+            await cls.db.start()
+            # await self.state_store.upgrade_table.upgrade(self.db)
+        except DatabaseException as e:
+            log.critical("Failed to initialize database", exc_info=e)
+            if e.explanation:
+                log.info(e.explanation)
+            sys.exit(25)
+
+    @classmethod
+    async def start(cls) -> None:
+        IVRFlow.prepare_db()
+        await IVRFlow.start_db()
+
     @property
     def flow_path(self):
         return self.request.path.strip("/")
 
 
 if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    loop.create_task(IVRFlow.start())
     app = AGIApplication()
     app.router.add_route("*", "/{key:.+}", IVRFlow)
     runner.run_app(app)

@@ -21,3 +21,22 @@ services:
       options:
         max-size: 20m
         max-file: "10"
+
+  postgres:
+    image: postgres:14-alpine
+    restart: unless-stopped
+    ports:
+      - 5450:5432
+    healthcheck:
+      test: [ 'CMD', 'pg_isready', '-U', 'ivrflow' ]
+    environment:
+      POSTGRES_USER: ${DB_USER?Variable not set}
+      POSTGRES_PASSWORD: ${DB_PASSWORD?Variable not set}
+      POSTGRES_DB: ${DB_NAME?Variable not set}
+      POSTGRES_INITDB_ARGS: --encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    command: |
+      postgres
+        -c shared_buffers=1024MB
+        -c max_connections=1000
+    volumes:
+      - ivflow_schemas:/var/lib/postgresql/data
