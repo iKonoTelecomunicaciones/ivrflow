@@ -25,5 +25,6 @@ class Playback(FlowObject):
     """
 
     file: str = ib(default="")
-    scape_digits: str = ib(default="")
+    escape_digits: str = ib(default="")
     sample_offset: int = ib(default=0)
+    o_connection: str = ib(default="")

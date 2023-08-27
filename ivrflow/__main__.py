@@ -8,9 +8,11 @@ from aioagi.log import agi_server_logger as Logger
 from aioagi.urldispathcer import AGIView
 from mautrix.util.async_db import Database, DatabaseException
 
+from .channel import Channel
 from .config import config
 from .db import init as init_db
 from .db import upgrade_table
+from .db.channel import ChannelState
 from .flow import Flow
 from .nodes import Base
 from .repository import Flow as FlowModel
@@ -19,7 +21,6 @@ log: Logger = getLogger("ivrflow.main")
 
 
 class IVRFlow(AGIView):
-    current_node = "start"
     db: Database
 
     async def sip(self):
@@ -31,12 +32,32 @@ class IVRFlow(AGIView):
     async def dahdi(self):
         await self.algorithm()
 
-    async def algorithm(self):
+    async def algorithm(self, channel: Channel = None):
         Base.init_cls(config=config, asterisk_conn=self.request)
+        channel = await Channel.get_by_channel_uniqueid(
+            channel_uniqueid=self.request.headers["agi_channel"]
+        )
         flow_model = FlowModel.load_flow(self.flow_path)
         flow = Flow(flow_data=flow_model)
-        node = flow.node(self.current_node)
+        node = flow.node(channel=channel)
+
+        if node is None:
+            log.debug(f"Room {channel.channel_uniqueid} does not have a node")
+            await channel.update_ivr(node_id="start")
+            return
+
+        log.debug(
+            f"The [channel: {channel.channel_uniqueid}] [node: {node.id}] [state: {channel.state}]"
+        )
+
         await node.run()
+
+        if channel.state == ChannelState.END:
+            log.debug(f"The channel {channel.channel_uniqueid} has terminated the flow")
+            await channel.update_ivr(node_id=ChannelState.START)
+            return
+
+        await self.algorithm(channel=channel)
 
     @classmethod
     def prepare_db(cls) -> None:
@@ -51,10 +72,8 @@ class IVRFlow(AGIView):
     @classmethod
     async def start_db(cls) -> None:
         log.debug("Starting database...")
-
         try:
             await cls.db.start()
-            # await self.state_store.upgrade_table.upgrade(self.db)
         except DatabaseException as e:
             log.critical("Failed to initialize database", exc_info=e)
             if e.explanation:
