@@ -1,0 +1,13 @@
+/.venv
+venv/
+*env/
+.env
+/config.yaml
+__pycache__/
+*.log*
+*.db
+*.json
+*logs
+*media_store
+*schemas*
+lazygit.tar.gz

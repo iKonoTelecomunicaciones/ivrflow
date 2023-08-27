@@ -3,7 +3,7 @@ services:
   ivrflow:
     image: ikonoim/ivrflow:dev
     build:
-      context: .
+      context: ./projects/ivrflow
       dockerfile: Dockerfile
       # runtime, or dev, or test for running tests
       target: dev
@@ -14,8 +14,8 @@ services:
       GETIDDIR: /etc/getid
     volumes:
       - /etc/localtime:/etc/localtime
-      - ./flows:/data/flows
-      - ./ivrflow:/ivrflow
+      - ./volumes/ivrflow:/data
+      #- ./projects/ivrflow:/ivrflow
     logging:
       driver: json-file
       options:

@@ -1,0 +1,42 @@
+logging:
+  version: 1
+  disable_existing_loggers: true
+  formatters:
+    verbose:
+      format: >
+        (%(levelname)s) | %(name)s | [%(asctime)s]:
+        'File %(pathname)s:%(lineno)s' - %(funcName)s() | %(message)s
+    additional_verbose:
+      format: >
+        \n\033[1;34m(%(levelname)s) | %(name)s | [%(asctime)s]:
+        'File \033[3;38;5;226m"%(pathname)s:%(lineno)s"\033[23;38;5;87m - %(funcName)s()
+        \033[1;34mMessage \033[3;38;5;198m"%(message)s"
+        \033[23;0;0m'
+    colored:
+      (): ivrflow.utils.logging_colored.CustomFormatter
+  handlers:
+    console:
+      level: DEBUG
+      class: logging.StreamHandler
+      formatter: additional_verbose
+  loggers:
+    ivrflow:
+      level: DEBUG
+      handlers:
+        - console
+      propagate: true
+    aioagi:
+      level: DEBUG
+      handlers:
+        - console
+      propagate: false
+    py.warnings:
+      level: DEBUG
+      handlers:
+        - console
+      propagate: false
+    asyncio:
+      level: DEBUG
+      handlers:
+        - console
+      propagate: false

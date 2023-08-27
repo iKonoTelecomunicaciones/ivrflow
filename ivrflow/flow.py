@@ -5,17 +5,17 @@ from typing import Dict
 
 from mautrix.util.logging import TraceLogger
 
-from nodes import Playback, NodeTypes
-from repository import Flow as FlowModel
+from .nodes import Playback
+from .repository import Flow as FlowModel
 
 
 class Flow:
-    log: TraceLogger = logging.getLogger()
+    log: TraceLogger = logging.getLogger("ivrflow.flow")
 
     nodes: Dict[str, object]
     nodes_by_id: Dict[str, object] = {}
 
-    def __init__(self, flow_data: FlowModel) -> None:
+    def __init__(self, *, flow_data: FlowModel) -> None:
         self.content: FlowModel = flow_data
         self.nodes = self.content.nodes
 
@@ -57,9 +57,7 @@ class Flow:
         if not node_data:
             return
 
-        self.log.critical(node_data)
-
-        if node_data.type == NodeTypes.PLAYBACK.value:
+        if node_data.type == "playback":
             node_initialized = Playback(
                 playback_content=node_data, default_variables=self.flow_variables
             )

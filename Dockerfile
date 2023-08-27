@@ -2,7 +2,7 @@
 FROM python:3.8 as base
 
 # set the working directory in the container
-WORKDIR /ivrflow
+WORKDIR /app
 
 # Upgrade pip
 RUN python -m pip install --upgrade --no-cache-dir pip
@@ -27,21 +27,21 @@ COPY requirements-dev.txt .
 RUN pip install -r requirements-dev.txt
 
 # copy the content of the local src directory to the working directory
-COPY ivrflow/ .
+COPY . ./
 
-ENTRYPOINT watchmedo auto-restart --recursive --pattern="*.py" --directory="." python ./server.py
+ENTRYPOINT watchmedo auto-restart --recursive --pattern="*.py" --directory="." -- python -m ivrflow
 
 
 FROM python:3.8-slim AS runtime
 
 # set the working directory in the container
-WORKDIR /ivrflow
+WORKDIR /app
 
 # copy the content of the local src directory to the working directory
-COPY ivrflow .
+COPY . ./
 
 # copy the dependencies downloaded
 COPY --from=base /install /usr/local
 
 # command to run on container start
-CMD [ "python", "server.py" ]
+CMD [ "python", "-m", "ivrflow" ]

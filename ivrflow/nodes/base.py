@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from json import JSONDecodeError, dumps, loads
-from logging import getLogger, Logger
+from logging import Logger, getLogger
 from typing import Any, Dict, List
 
 from aiohttp import ClientSession
 
-from config import Config
-from jinja.jinja_template import jinja_env
+from ..config import Config
+from ..jinja.jinja_template import jinja_env
 
 
 def convert_to_bool(item) -> Dict | List | str:
@@ -53,7 +53,7 @@ def safe_data_convertion(item: Any, _bool: bool = True, _int: bool = True) -> An
 
 
 class Base:
-    log: Logger = getLogger("ivrflow.nodes")
+    log: Logger = getLogger("ivrflow.node")
 
     config: Config
     content: object
@@ -70,8 +70,9 @@ class Base:
         return self.content.type
 
     @classmethod
-    def init_cls(cls, config: Config, session: ClientSession):
+    def init_cls(cls, config: Config, asterisk_conn: ClientSession):
         cls.config = config
+        cls.asterisk_conn = asterisk_conn
 
     @abstractmethod
     async def run(self):
@@ -101,7 +102,7 @@ class Base:
                 self.log.exception(e)
                 return
 
-        copy_variables = {**self.default_variables, **self.room._variables}
+        copy_variables = {**self.default_variables}
 
         try:
             data = loads(data_template.render(**copy_variables))

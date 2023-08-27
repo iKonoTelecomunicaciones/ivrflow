@@ -24,7 +24,9 @@ e.g
 {{ utcnow() }}
 """
 
-jinja_env.globals.update(datetime_format=lambda date, format: datetime.strptime(date, format))
+jinja_env.globals.update(
+    datetime_format=lambda date, format: datetime.strptime(date, format)
+)
 """
 Converts a string to a datetime with a specific format
 e.g

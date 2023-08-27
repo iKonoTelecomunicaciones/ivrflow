@@ -1,9 +1,11 @@
-from attr import dataclass, ib
-from typing import List, Dict, Any
-from mautrix.types import SerializableAttrs
-from .nodes import Playback
+from logging import Logger, getLogger
+from typing import Any, Dict, List
+
 import yaml
-from logging import getLogger, Logger
+from attr import dataclass, ib
+from mautrix.types import SerializableAttrs
+
+from .nodes import Playback
 
 log: Logger = getLogger("ivrflow.repository.flow")
 
@@ -28,5 +30,5 @@ class Flow(SerializableAttrs):
     def from_dict(cls, flow: Dict):
         return cls(
             flow_variables=flow.get("flow_variables", {}),
-            nodes=[Playback.from_dict(node) for node in flow.get("nodes", [])],
+            nodes=[Playback(**node) for node in flow.get("nodes", [])],
         )
