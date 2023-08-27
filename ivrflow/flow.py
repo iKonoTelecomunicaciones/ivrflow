@@ -6,7 +6,7 @@ from typing import Dict
 from mautrix.util.logging import TraceLogger
 
 from .channel import Channel
-from .nodes import Playback
+from .nodes import Playback, Switch
 from .repository import Flow as FlowModel
 
 
@@ -52,7 +52,7 @@ class Flow:
                 self._add_node_to_cache(node)
                 return node
 
-    def node(self, channel: Channel) -> Playback | None:
+    def node(self, channel: Channel) -> Playback | Switch | None:
         node_data = self.get_node_by_id(node_id=channel.node_id)
 
         if not node_data:
@@ -61,6 +61,10 @@ class Flow:
         if node_data.type == "playback":
             node_initialized = Playback(
                 playback_content=node_data, default_variables=self.flow_variables, channel=channel
+            )
+        elif node_data.type == "switch":
+            node_initialized = Switch(
+                switch_content=node_data, default_variables=self.flow_variables, channel=channel
             )
         else:
             return
