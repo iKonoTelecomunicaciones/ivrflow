@@ -7,6 +7,7 @@ from typing import Any, Dict, List
 
 from aiohttp import ClientSession
 
+from ..channel import Channel
 from ..config import Config
 from ..jinja.jinja_template import jinja_env
 
@@ -57,9 +58,11 @@ class Base:
 
     config: Config
     content: object
+    channel: Channel
 
-    def __init__(self, default_variables: Dict) -> None:
+    def __init__(self, default_variables: Dict, channel: Channel) -> None:
         self.default_variables = default_variables
+        self.channel = channel
 
     @property
     def id(self) -> str:
@@ -102,7 +105,7 @@ class Base:
                 self.log.exception(e)
                 return
 
-        copy_variables = {**self.default_variables}
+        copy_variables = {**self.default_variables, **self.channel._variables}
 
         try:
             data = loads(data_template.render(**copy_variables))
