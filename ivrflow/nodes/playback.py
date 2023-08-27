@@ -11,6 +11,7 @@ class Playback(Base):
         self, default_variables: Dict, playback_content: PlaybackModel, channel: Channel
     ) -> None:
         super().__init__(default_variables, channel=channel)
+        self.log = self.log.getChild(playback_content.id)
         self.content: PlaybackModel = playback_content
 
     @property
