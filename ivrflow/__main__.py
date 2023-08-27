@@ -42,7 +42,7 @@ class IVRFlow(AGIView):
         node = flow.node(channel=channel)
 
         if node is None:
-            log.debug(f"Room {channel.channel_uniqueid} does not have a node")
+            log.debug(f"Channel {channel.channel_uniqueid} does not have a node")
             await channel.update_ivr(node_id="start")
             return
 
