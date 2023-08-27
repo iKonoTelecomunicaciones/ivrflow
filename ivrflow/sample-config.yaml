@@ -1,3 +1,9 @@
+ivrflow:
+  database: postgresql://ivrflow:secretfoo@postgres/ivrflow
+  database_opts:
+      min_size: 1
+      max_size: 10
+
 logging:
   version: 1
   disable_existing_loggers: true
