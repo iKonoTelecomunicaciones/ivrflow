@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict
+from typing import Dict, Optional
 
 from mautrix.util.logging import TraceLogger
 
 from .channel import Channel
-from .nodes import Playback, Switch
+from .flow_utils import FlowUtils
+from .middlewares import HTTPMiddleware
+from .nodes import HTTPRequest, Playback, Switch
 from .repository import Flow as FlowModel
 
 
@@ -16,9 +18,10 @@ class Flow:
     nodes: Dict[str, object]
     nodes_by_id: Dict[str, object] = {}
 
-    def __init__(self, *, flow_data: FlowModel) -> None:
+    def __init__(self, *, flow_data: FlowModel, flow_utils: Optional[FlowUtils] = None) -> None:
         self.content: FlowModel = flow_data
         self.nodes = self.content.nodes
+        self.flow_utils = flow_utils
 
     def _add_node_to_cache(self, node_data: Playback):
         self.nodes_by_id[node_data.id] = node_data
@@ -27,7 +30,7 @@ class Flow:
     def flow_variables(self) -> Dict:
         return self.content.flow_variables
 
-    def get_node_by_id(self, node_id: str) -> Dict | None:
+    def get_node_by_id(self, node_id: str) -> object | None:
         """This function returns a node from a cache or a list of nodes based on its ID.
 
         Parameters
@@ -52,7 +55,21 @@ class Flow:
                 self._add_node_to_cache(node)
                 return node
 
-    def node(self, channel: Channel) -> Playback | Switch | None:
+    def middleware(self, middleware_id: str, channel: Channel) -> HTTPMiddleware:
+        middleware_model = self.flow_utils.get_middleware_by_id(middleware_id=middleware_id)
+
+        if not middleware_model:
+            return
+
+        middleware_initialized = HTTPMiddleware(
+            http_middleware_content=middleware_model,
+            channel=channel,
+            default_variables=self.flow_variables,
+        )
+
+        return middleware_initialized
+
+    def node(self, channel: Channel) -> Playback | Switch | HTTPRequest | None:
         node_data = self.get_node_by_id(node_id=channel.node_id)
 
         if not node_data:
@@ -66,6 +83,15 @@ class Flow:
             node_initialized = Switch(
                 switch_content=node_data, default_variables=self.flow_variables, channel=channel
             )
+        elif node_data.type == "http_request":
+            node_initialized = HTTPRequest(
+                http_request_content=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
+            )
+            if node_data.middleware:
+                middleware = self.middleware(node_data.middleware, channel=channel)
+                node_initialized.middleware = middleware
         else:
             return
 

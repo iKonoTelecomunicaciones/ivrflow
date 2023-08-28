@@ -10,7 +10,7 @@ from .base import Base, safe_data_convertion
 
 class Switch(Base):
     # Keeps track of the number of validation attempts made in a switch node by channel.
-    VALIDATION_ATTEMPTS_BY_ROOM: Dict[str, int] = {}
+    VALIDATION_ATTEMPTS_BY_CHANNEL: Dict[str, int] = {}
 
     def __init__(
         self, switch_content: SwitchModel, channel: Channel, default_variables: Dict
@@ -94,9 +94,9 @@ class Switch(Base):
 
             if (
                 self.validation_attempts
-                and self.channel.channel_uniqueid in self.VALIDATION_ATTEMPTS_BY_ROOM
+                and self.channel.channel_uniqueid in self.VALIDATION_ATTEMPTS_BY_CHANNEL
             ):
-                del self.VALIDATION_ATTEMPTS_BY_ROOM[self.channel.channel_uniqueid]
+                del self.VALIDATION_ATTEMPTS_BY_CHANNEL[self.channel.channel_uniqueid]
 
             return case_o_connection
         except KeyError:
@@ -141,23 +141,23 @@ class Switch(Base):
         """
         cases = await self.load_cases()
 
-        room_validation_attempts = self.VALIDATION_ATTEMPTS_BY_ROOM.get(
+        channel_validation_attempts = self.VALIDATION_ATTEMPTS_BY_CHANNEL.get(
             self.channel.channel_uniqueid, 1
         )
-        if self.validation_attempts and room_validation_attempts >= self.validation_attempts:
-            if self.channel.channel_uniqueid in self.VALIDATION_ATTEMPTS_BY_ROOM:
-                del self.VALIDATION_ATTEMPTS_BY_ROOM[self.channel.channel_uniqueid]
+        if self.validation_attempts and channel_validation_attempts >= self.validation_attempts:
+            if self.channel.channel_uniqueid in self.VALIDATION_ATTEMPTS_BY_CHANNEL:
+                del self.VALIDATION_ATTEMPTS_BY_CHANNEL[self.channel.channel_uniqueid]
             case_to_be_used = "attempt_exceeded"
         else:
             case_to_be_used = "default"
 
         if self.validation_attempts and case_to_be_used == "default":
             self.log.critical(
-                f"Validation Attempts {room_validation_attempts} "
+                f"Validation Attempts {channel_validation_attempts} "
                 f"of {self.validation_attempts} for channel {self.channel.channel_uniqueid}"
             )
-            self.VALIDATION_ATTEMPTS_BY_ROOM[self.channel.channel_uniqueid] = (
-                room_validation_attempts + 1
+            self.VALIDATION_ATTEMPTS_BY_CHANNEL[self.channel.channel_uniqueid] = (
+                channel_validation_attempts + 1
             )
 
         # Getting the default case

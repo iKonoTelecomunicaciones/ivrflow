@@ -59,6 +59,7 @@ class Base:
     config: Config
     content: object
     channel: Channel
+    session: ClientSession
 
     def __init__(self, default_variables: Dict, channel: Channel) -> None:
         self.default_variables = default_variables
@@ -73,9 +74,10 @@ class Base:
         return self.content.type
 
     @classmethod
-    def init_cls(cls, config: Config, asterisk_conn: ClientSession):
+    def init_cls(cls, config: Config, asterisk_conn: ClientSession, session: ClientSession):
         cls.config = config
         cls.asterisk_conn = asterisk_conn
+        cls.session = session
 
     @abstractmethod
     async def run(self):

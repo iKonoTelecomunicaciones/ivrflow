@@ -4,6 +4,13 @@ ivrflow:
       min_size: 1
       max_size: 10
 
+  # It defines how much time have to wait an HTTP request or middleware before raise a timeout error,
+  # it's important that middlewares will have a time minor to http_request
+  # because jwt request shouldn't take much time, and it can stop http_request too much time.
+  timeouts:
+    http_request: 10 #seconds
+    middlewares: 5 #seconds
+
 logging:
   version: 1
   disable_existing_loggers: true
