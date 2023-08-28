@@ -1,0 +1,112 @@
+from __future__ import annotations
+
+import base64
+from logging import getLogger
+from types import SimpleNamespace
+from typing import TYPE_CHECKING, Dict
+
+from aiohttp import ClientSession, TraceRequestEndParams, TraceRequestStartParams
+from mautrix.util.logging import TraceLogger
+
+from .channel import Channel
+
+if TYPE_CHECKING:
+    from .middlewares import HTTPMiddleware
+
+log: TraceLogger = getLogger("ivrflow.middleware")
+
+
+async def start_auth_middleware(
+    session: ClientSession, trace_config_ctx: SimpleNamespace, params: TraceRequestStartParams
+):
+    """It checks if the request is going to a URL that has a middleware,
+    and if so, it adds the appropriate headers to the request
+
+    Parameters
+    ----------
+    session
+        The session object that is used to make the request.
+    trace_config_ctx
+        This is the context of the request.
+    params
+        Dict - the parameters of the request
+
+    """
+
+    trace_request_ctx: Dict = trace_config_ctx.__dict__
+    if not trace_request_ctx.get("trace_request_ctx"):
+        return
+
+    context_params: Dict = trace_request_ctx["trace_request_ctx"]
+    middleware: HTTPMiddleware = context_params.get("middleware")
+
+    if not middleware:
+        log.info(f"There's no define middleware for this request: {params.url}")
+        return
+
+    if not str(params.url).startswith(middleware.url):
+        log.info(f"The request url do not match with the middleware url")
+        return
+
+    params.headers.update(middleware.general.get("headers"))
+
+    if middleware.type == "jwt":
+        channel: Channel = await Channel.get_by_channel_uniqueid(
+            channel_uniqueid=context_params.get("channel_uniqueid")
+        )
+        channel_variables: Dict = middleware.auth.get("variables", {})
+        token_key: str = list(channel_variables.keys())[0]
+
+        if not await channel.get_variable(token_key):
+            await middleware.auth_request()
+
+        params.headers.update(
+            {"Authorization": f"{middleware.token_type} {await channel.get_variable(token_key)}"}
+        )
+    elif middleware.type == "basic":
+        log.info(f"middleware: {middleware.id} type: {middleware.type} executing ...")
+        auth_str = f"{middleware.basic_auth['login']}:{middleware.basic_auth['password']}".encode(
+            "utf-8"
+        )
+        params.headers.update({"Authorization": f"Basic {base64.b64encode(auth_str).decode()}"})
+
+
+async def end_auth_middleware(
+    session: ClientSession, trace_config_ctx: SimpleNamespace, params: TraceRequestEndParams
+):
+    """If the response status is 401, refresh the token and retry the request
+
+    Parameters
+    ----------
+    session
+        The session object that is used to make the request.
+    trace_config_ctx
+        This is the context of the request. It contains the request parameters.
+    params
+        The parameters of the request.
+
+    Returns
+    -------
+        The response from the request.
+
+    """
+
+    trace_request_ctx: Dict = trace_config_ctx.__dict__
+    if not trace_request_ctx.get("trace_request_ctx"):
+        return
+
+    context_params: Dict = trace_request_ctx["trace_request_ctx"]
+    middleware: HTTPMiddleware = context_params.get("middleware")
+
+    if not middleware:
+        log.info(f"There's no define middleware for this request: {params.url}")
+        return
+
+    if params.response.status == 401:
+        if not str(params.url).startswith(middleware.url):
+            log.info(f"The request url do not match with the meddleware url")
+            return
+
+        if middleware.type == "jwt":
+            log.info("Token expired, refreshing token ...")
+            await middleware.auth_request()
