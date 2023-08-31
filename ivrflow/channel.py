@@ -107,7 +107,7 @@ class Channel(DBChannel):
         self.variables = json.dumps(self._variables)
         self.log.debug(
             f"Saving variable [{variable_id}] to channel "
-            "[{self.channel_uniqueid}] :: content [{value}]"
+            f"[{self.channel_uniqueid}] :: content [{value}]"
         )
         await self.update()
 

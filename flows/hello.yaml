@@ -5,5 +5,5 @@ nodes:
   - id: start
     type: playback
     file: "{{ file }}"
-    scape_digits: 0
+    escape_digits: 0
     sample_offset: 0
