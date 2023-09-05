@@ -9,3 +9,4 @@ class NodeType(SerializableEnum):
     http_request = "http_request"
     playback = "playback"
     switch = "switch"
+    get_data = "get_data"

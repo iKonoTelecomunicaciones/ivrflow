@@ -9,7 +9,7 @@ from .channel import Channel
 from .flow_utils import FlowUtils
 from .middlewares import HTTPMiddleware
 from .models import Flow as FlowModel
-from .nodes import HTTPRequest, Playback, Switch
+from .nodes import GetData, HTTPRequest, Playback, Switch
 from .types import NodeType
 
 
@@ -70,7 +70,7 @@ class Flow:
 
         return middleware_initialized
 
-    def node(self, channel: Channel) -> Playback | Switch | HTTPRequest | None:
+    def node(self, channel: Channel) -> Playback | Switch | HTTPRequest | GetData | None:
         node_data = self.get_node_by_id(node_id=channel.node_id)
 
         if not node_data:
@@ -99,6 +99,10 @@ class Flow:
             if node_data.middleware:
                 middleware = self.middleware(node_data.middleware, channel=channel)
                 node_initialized.middleware = middleware
+        elif node_type == NodeType.get_data:
+            node_initialized = GetData(
+                get_data_content=node_data, channel=channel, default_variables=self.flow_variables
+            )
         else:
             return
 
