@@ -2,7 +2,7 @@ from typing import Dict
 
 from ..channel import Channel
 from ..db.channel import ChannelState
-from ..repository import Playback as PlaybackModel
+from ..models import Playback as PlaybackModel
 from .base import Base
 
 

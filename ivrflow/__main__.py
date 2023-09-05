@@ -4,7 +4,6 @@ from logging import Logger, getLogger
 
 from aioagi import runner
 from aioagi.app import AGIApplication
-from aioagi.log import agi_server_logger as Logger
 from aioagi.urldispathcer import AGIView
 from aiohttp import ClientSession, TraceConfig
 from mautrix.util.async_db import Database, DatabaseException
@@ -17,8 +16,8 @@ from .db.channel import ChannelState
 from .flow import Flow
 from .flow_utils import FlowUtils
 from .http_middleware import end_auth_middleware, start_auth_middleware
+from .models import Flow as FlowModel
 from .nodes import Base
-from .repository import Flow as FlowModel
 
 log: Logger = getLogger("ivrflow.main")
 
@@ -47,7 +46,7 @@ class IVRFlow(AGIView):
 
         return flow, channel
 
-    async def algorithm(self):
+    async def algorithm(self) -> None:
         flow: Flow
         channel: Channel
 
@@ -107,14 +106,22 @@ class IVRFlow(AGIView):
         await IVRFlow.start_db()
         IVRFlow.init_http_client()
 
+    @classmethod
+    async def stop(cls) -> None:
+        await cls.http_client.close()
+
     @property
     def flow_path(self):
         return self.request.path.strip("/")
 
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.create_task(IVRFlow.start())
-    app = AGIApplication()
-    app.router.add_route("*", "/{key:.+}", IVRFlow)
-    runner.run_app(app)
+    try:
+        loop = asyncio.get_event_loop()
+        loop.create_task(IVRFlow.start())
+        app = AGIApplication()
+        app.router.add_route("*", "/{key:.+}", IVRFlow)
+        runner.run_app(app)
+    finally:
+        loop = asyncio.new_event_loop()
+        loop.run_until_complete(IVRFlow.stop())

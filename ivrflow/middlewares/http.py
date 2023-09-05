@@ -5,8 +5,8 @@ from mautrix.util.config import RecursiveDict
 from ruamel.yaml.comments import CommentedMap
 
 from ..channel import Channel
+from ..models import HTTPMiddleware as HTTPMiddlewareModel
 from ..nodes import Base
-from ..repository import HTTPMiddleware as HTTPMiddlewareModel
 
 
 class HTTPMiddleware(Base):

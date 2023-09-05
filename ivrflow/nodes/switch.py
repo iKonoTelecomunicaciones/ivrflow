@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import Dict, List
 
 from ..channel import Channel
-from ..repository import Case
-from ..repository import Switch as SwitchModel
+from ..models import Case
+from ..models import Switch as SwitchModel
 from .base import Base, safe_data_convertion
 
 
