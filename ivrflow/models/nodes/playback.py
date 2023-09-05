@@ -1,5 +1,3 @@
-from typing import Any, Dict
-
 from attr import dataclass, ib
 
 from ..flow_object import FlowObject

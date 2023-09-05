@@ -6,7 +6,7 @@ from ruamel.yaml.comments import CommentedMap
 
 from ..channel import Channel
 from ..db.channel import ChannelState
-from ..repository import HTTPRequest as HTTPRequestModel
+from ..models import HTTPRequest as HTTPRequestModel
 from .switch import Switch
 
 if TYPE_CHECKING:

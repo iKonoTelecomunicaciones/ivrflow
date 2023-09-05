@@ -8,8 +8,9 @@ from mautrix.util.logging import TraceLogger
 from .channel import Channel
 from .flow_utils import FlowUtils
 from .middlewares import HTTPMiddleware
+from .models import Flow as FlowModel
 from .nodes import HTTPRequest, Playback, Switch
-from .repository import Flow as FlowModel
+from .types import NodeType
 
 
 class Flow:
@@ -23,7 +24,7 @@ class Flow:
         self.nodes = self.content.nodes
         self.flow_utils = flow_utils
 
-    def _add_node_to_cache(self, node_data: Playback):
+    def _add_node_to_cache(self, node_data: Playback | Switch | HTTPRequest):
         self.nodes_by_id[node_data.id] = node_data
 
     @property
@@ -75,15 +76,21 @@ class Flow:
         if not node_data:
             return
 
-        if node_data.type == "playback":
+        try:
+            node_type = NodeType(node_data.type)
+        except ValueError:
+            self.log.error(f"Node type {node_data.type} is not supported.")
+            return
+
+        if node_type == NodeType.playback:
             node_initialized = Playback(
                 playback_content=node_data, default_variables=self.flow_variables, channel=channel
             )
-        elif node_data.type == "switch":
+        elif node_type == NodeType.switch:
             node_initialized = Switch(
                 switch_content=node_data, default_variables=self.flow_variables, channel=channel
             )
-        elif node_data.type == "http_request":
+        elif node_type == NodeType.http_request:
             node_initialized = HTTPRequest(
                 http_request_content=node_data,
                 default_variables=self.flow_variables,

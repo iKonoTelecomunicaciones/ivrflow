@@ -42,10 +42,10 @@ class Switch(FlowObject):
 
     validation: str = ib(default=None)
     validation_attempts: int = ib(default=None)
-    cases: List[Case] = ib(factory=list)
+    cases: List[Case] = ib(factory=List)
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(cls, data: dict) -> "Switch":
         return cls(
             id=data.get("id"),
             type=data.get("type"),

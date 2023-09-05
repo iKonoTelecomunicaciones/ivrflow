@@ -47,7 +47,7 @@ class HTTPRequest(Switch):
     cases: List[Case] = ib(factory=list)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> HTTPRequest:
+    def from_dict(cls, data: Dict[str, Any]) -> "HTTPRequest":
         return cls(
             id=data.get("id"),
             type=data.get("type"),
