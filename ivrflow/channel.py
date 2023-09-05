@@ -40,7 +40,7 @@ class Channel(DBChannel):
         if self.channel_uniqueid:
             self.by_channel_uniqueid[self.channel_uniqueid] = self
 
-    async def clean_up(self):
+    async def clean_up(self) -> None:
         del self.by_channel_uniqueid[self.channel_uniqueid]
         self.variables = "{}"
         self._variables = {}
@@ -99,7 +99,25 @@ class Channel(DBChannel):
         """
         return self._variables.get(variable_id)
 
-    async def set_variable(self, variable_id: str, value: Any):
+    async def set_variable(self, variable_id: str, value: Any) -> None:
+        """
+        The function sets a variable with a given ID and value, updates the variables dictionary.
+
+        Parameters
+        ----------
+        variable_id : str
+            The `variable_id` parameter is a string that represents
+            the unique identifier of the variable you want to set.
+        value : Any
+            The `value` parameter in the `set_variable` function is the value
+            that you want to assign to the variable identified by `variable_id`.
+            It can be of any data type (e.g., string, integer, boolean, etc.).
+
+        Returns
+        -------
+            None
+
+        """
         if not variable_id:
             return
 
@@ -111,7 +129,7 @@ class Channel(DBChannel):
         )
         await self.update()
 
-    async def set_variables(self, variables: Dict):
+    async def set_variables(self, variables: Dict) -> None:
         """It takes a dictionary of variable IDs and values, and sets the variables to the values
 
         Parameters
@@ -123,7 +141,7 @@ class Channel(DBChannel):
         for variable in variables:
             await self.set_variable(variable_id=variable, value=variables[variable])
 
-    async def update_ivr(self, node_id: str | ChannelState, state: ChannelState = None):
+    async def update_ivr(self, node_id: str | ChannelState, state: ChannelState = None) -> None:
         """Updates the IVR's node_id and state, and then updates the IVR's content
 
         Parameters
@@ -134,6 +152,7 @@ class Channel(DBChannel):
             The state of the IVR. This is used to determine which IVR to display.
 
         """
+
         self.log.debug(
             f"The [channel: {self.channel_uniqueid}] will update his [node: {self.node_id}] to"
             f"[{node_id.value if isinstance(node_id, ChannelState) else node_id}] "

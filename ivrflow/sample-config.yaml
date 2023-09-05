@@ -31,7 +31,7 @@ logging:
     console:
       level: DEBUG
       class: logging.StreamHandler
-      formatter: additional_verbose
+      formatter: colored
   loggers:
     ivrflow:
       level: DEBUG

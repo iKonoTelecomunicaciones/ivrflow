@@ -1,7 +1,7 @@
 from typing import Dict
 
 from ..channel import Channel
-from ..repository import GetData as GetDataModel
+from ..models import GetData as GetDataModel
 from .switch import Switch
 
 
