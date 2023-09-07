@@ -7,10 +7,10 @@ from mautrix.util.logging import TraceLogger
 
 from .channel import Channel
 from .flow_utils import FlowUtils
-from .middlewares import HTTPMiddleware
+from .middlewares import HTTPMiddleware, TTSMiddleware
 from .models import Flow as FlowModel
 from .nodes import GetData, HTTPRequest, Playback, Switch
-from .types import NodeType
+from .types import MiddlewareType, NodeType
 
 
 class Flow:
@@ -62,11 +62,24 @@ class Flow:
         if not middleware_model:
             return
 
-        middleware_initialized = HTTPMiddleware(
-            http_middleware_content=middleware_model,
-            channel=channel,
-            default_variables=self.flow_variables,
-        )
+        try:
+            middleware_type = MiddlewareType(middleware_model.type)
+        except ValueError:
+            self.log.error(f"Middleware type {middleware_model.type} is not supported.")
+            return
+
+        if middleware_type in (MiddlewareType.jwt, MiddlewareType.basic):
+            middleware_initialized = HTTPMiddleware(
+                http_middleware_content=middleware_model,
+                channel=channel,
+                default_variables=self.flow_variables,
+            )
+        elif middleware_type == MiddlewareType.tts:
+            middleware_initialized = TTSMiddleware(
+                tts_middleware_content=middleware_model,
+                channel=channel,
+                default_variables=self.flow_variables,
+            )
 
         return middleware_initialized
 
@@ -86,6 +99,9 @@ class Flow:
             node_initialized = Playback(
                 playback_content=node_data, default_variables=self.flow_variables, channel=channel
             )
+            if node_data.middleware:
+                middleware = self.middleware(node_data.middleware, channel=channel)
+                node_initialized.middleware = middleware
         elif node_type == NodeType.switch:
             node_initialized = Switch(
                 switch_content=node_data, default_variables=self.flow_variables, channel=channel

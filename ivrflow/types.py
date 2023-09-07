@@ -10,3 +10,9 @@ class NodeType(SerializableEnum):
     playback = "playback"
     switch = "switch"
     get_data = "get_data"
+
+
+class MiddlewareType(SerializableEnum):
+    jwt = "jwt"
+    basic = "basic"
+    tts = "tts"

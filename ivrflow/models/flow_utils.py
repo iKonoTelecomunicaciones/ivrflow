@@ -8,7 +8,8 @@ from attr import dataclass, ib
 from mautrix.types import SerializableAttrs
 from mautrix.util.logging import TraceLogger
 
-from .middlewares import HTTPMiddleware
+from ..types import MiddlewareType
+from .middlewares import HTTPMiddleware, TTSMiddleware
 
 log: TraceLogger = logging.getLogger("ivrflow.models.flow_utils")
 
@@ -31,6 +32,23 @@ class FlowUtils(SerializableAttrs):
     def from_dict(cls, data: Dict) -> "FlowUtils":
         return cls(
             middlewares=[
-                HTTPMiddleware(**middleware) for middleware in data.get("middlewares", [])
+                cls.initialize_middleware_dataclass(middleware)
+                for middleware in data.get("middlewares", [])
             ]
         )
+
+    @classmethod
+    def initialize_middleware_dataclass(cls, middleware: Dict) -> HTTPMiddleware | TTSMiddleware:
+        try:
+            middleware_type = MiddlewareType(middleware.get("type"))
+        except ValueError:
+            log.warning(f"Middleware type {middleware.get('type')} not found")
+            return
+
+        if middleware_type in (MiddlewareType.jwt, MiddlewareType.basic):
+            return HTTPMiddleware(**middleware)
+        elif middleware_type == MiddlewareType.tts:
+            return TTSMiddleware(**middleware)
+        else:
+            log.warning(f"Middleware type {middleware_type} not found")
+            return

@@ -27,3 +27,24 @@ middlewares:
     general:
       headers:
         content-type: application/x-www-form-urlencoded
+
+  - id: tts
+    type: tts
+    method: POST
+    url: "http://ikono-tts/synthesize"
+    sound_path: "{{ file }}"
+    variables:
+      file: sound_path
+    cookies:
+      cookie: cookie
+    query_params:
+      query: query
+    headers:
+      content-type: application/json
+    basic_auth:
+      login: admin
+      password: secretfoo
+    data:
+      data: data
+    json:
+      json: json
