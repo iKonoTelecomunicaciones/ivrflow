@@ -17,7 +17,9 @@ class GetData(Switch):
     ```
       - id: start
         type: get_data
+        text: "Please enter your account number"
         file: "vm-exten"
+        middleware: m1
         timeout: 5
         max_digits: 1
         variable: opt
@@ -32,6 +34,8 @@ class GetData(Switch):
     """
 
     file: str = ib(factory=str)
+    text: str = ib(default=None)
+    middleware: str = ib(default=None)
     timeout: int = ib(factory=int)
     max_digits: int = ib(factory=int)
     variable: str = ib(factory=str)
@@ -42,6 +46,8 @@ class GetData(Switch):
             id=node.get("id"),
             type=node.get("type"),
             file=node.get("file"),
+            text=node.get("text"),
+            middleware=node.get("middleware"),
             timeout=node.get("timeout"),
             max_digits=node.get("max_digits"),
             variable=node.get("variable"),
