@@ -40,3 +40,6 @@ services:
         -c max_connections=1000
     volumes:
       - ivflow_schemas:/var/lib/postgresql/data
+
+volumes:
+  ivflow_schemas:
