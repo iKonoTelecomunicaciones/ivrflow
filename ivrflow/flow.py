@@ -119,7 +119,7 @@ class Flow:
             node_initialized = GetData(
                 get_data_content=node_data, channel=channel, default_variables=self.flow_variables
             )
-             if node_data.middleware:
+            if node_data.middleware:
                 middleware = self.middleware(node_data.middleware, channel=channel)
                 node_initialized.middleware = middleware
         elif node_type == NodeType.set_variable:
