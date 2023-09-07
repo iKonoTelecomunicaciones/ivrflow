@@ -10,6 +10,7 @@ class NodeType(SerializableEnum):
     playback = "playback"
     switch = "switch"
     get_data = "get_data"
+    set_variable = "set_variable"
 
 
 class MiddlewareType(SerializableEnum):

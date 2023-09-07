@@ -9,7 +9,7 @@ from .channel import Channel
 from .flow_utils import FlowUtils
 from .middlewares import HTTPMiddleware, TTSMiddleware
 from .models import Flow as FlowModel
-from .nodes import GetData, HTTPRequest, Playback, Switch
+from .nodes import GetData, HTTPRequest, Playback, SetVariable, Switch
 from .types import MiddlewareType, NodeType
 
 
@@ -122,6 +122,12 @@ class Flow:
             if node_data.middleware:
                 middleware = self.middleware(node_data.middleware, channel=channel)
                 node_initialized.middleware = middleware
+        elif node_type == NodeType.set_variable:
+            node_initialized = SetVariable(
+                set_variable_content=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
+            )
         else:
             return
 
