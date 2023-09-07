@@ -38,7 +38,7 @@ class IVRFlow(AGIView):
     async def post_init(self) -> (Flow, Channel):
         Base.init_cls(config=config, asterisk_conn=self.request, session=self.http_client)
         channel = await Channel.get_by_channel_uniqueid(
-            channel_uniqueid=self.request.headers["agi_channel"]
+            channel_uniqueid=self.request.headers["agi_uniqueid"]
         )
         self.flow_utils = FlowUtils()
         flow_model = FlowModel.load_flow(self.flow_path)
