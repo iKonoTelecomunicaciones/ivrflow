@@ -8,13 +8,13 @@ class Record(FlowObject):
     """
     ## Record
 
-    A Record node allows an audio to be streamed.
+    A Record node allows recording to a given file.
 
     content:
 
     ```
     - id: p1
-      type: Record
+      type: record
       file: "{{ record_file }}"
       format: "wav"
       escape_digits: "1234567890*#"
