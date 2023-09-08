@@ -9,7 +9,7 @@ from .channel import Channel
 from .flow_utils import FlowUtils
 from .middlewares import HTTPMiddleware, TTSMiddleware
 from .models import Flow as FlowModel
-from .nodes import GetData, HTTPRequest, Playback, SetVariable, Switch
+from .nodes import GetData, HTTPRequest, Playback, Record, SetVariable, Switch
 from .types import MiddlewareType, NodeType
 
 
@@ -127,6 +127,10 @@ class Flow:
                 set_variable_content=node_data,
                 default_variables=self.flow_variables,
                 channel=channel,
+            )
+        elif node_type == NodeType.record:
+            node_initialized = Record(
+                record_content=node_data, default_variables=self.flow_variables, channel=channel
             )
         else:
             return

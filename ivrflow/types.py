@@ -11,6 +11,7 @@ class NodeType(SerializableEnum):
     switch = "switch"
     get_data = "get_data"
     set_variable = "set_variable"
+    record = "record"
 
 
 class MiddlewareType(SerializableEnum):
