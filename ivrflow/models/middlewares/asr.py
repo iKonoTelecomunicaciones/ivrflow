@@ -6,22 +6,22 @@ from ..flow_object import FlowObject
 
 
 @dataclass
-class TTSMiddleware(FlowObject):
+class ASRMiddleware(FlowObject):
     """
-    ## TTSMiddleware
+    ## ASRMiddleware
 
-    A TTS middleware node allows to generate a sound from a text.
+    A ASR middleware node allows to recognize text from a sound file.
 
     content:
 
     ```
     - id: m1
-      type: tts
+      type: asr
       method: GET
-      url: "http://localhost:5000/tts"
-      sound_path: "{{ file }}"
+      url: "http://localhost:5000/asr"
+      text: "{{ content }}"
       variables:
-          file: "base_path"
+          content: "text"
       cookies:
           cookie1: "value1"
       query_params:
@@ -39,7 +39,7 @@ class TTSMiddleware(FlowObject):
 
     method: str = ib(default=None)
     url: str = ib(default=None)
-    sound_path: str = ib(default=None)
+    text: str = ib(default=None)
     variables: Dict[str, Any] = ib(factory=dict)
     cookies: Dict[str, Any] = ib(factory=dict)
     query_params: Dict[str, Any] = ib(factory=dict)

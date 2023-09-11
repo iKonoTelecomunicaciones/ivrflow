@@ -48,3 +48,24 @@ middlewares:
       data: data
     json:
       json: json
+
+  - id: asr
+    type: asr
+    method: POST
+    url: "http://ikono-asr/recognize"
+    text: "{{ content }}"
+    variables:
+      content: "text"
+    cookies:
+      cookie: cookie
+    query_params:
+      query: query
+    headers:
+      content-type: application/json
+    basic_auth:
+      login: admin
+      password: secretfoo
+    data:
+      data: data
+    json:
+      json: json
