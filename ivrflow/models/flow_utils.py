@@ -9,7 +9,7 @@ from mautrix.types import SerializableAttrs
 from mautrix.util.logging import TraceLogger
 
 from ..types import MiddlewareType
-from .middlewares import HTTPMiddleware, TTSMiddleware
+from .middlewares import ASRMiddleware, HTTPMiddleware, TTSMiddleware
 
 log: TraceLogger = logging.getLogger("ivrflow.models.flow_utils")
 

@@ -7,7 +7,7 @@ from mautrix.util.logging import TraceLogger
 
 from .channel import Channel
 from .flow_utils import FlowUtils
-from .middlewares import HTTPMiddleware, TTSMiddleware
+from .middlewares import ASRMiddleware, HTTPMiddleware, TTSMiddleware
 from .models import Flow as FlowModel
 from .nodes import GetData, HTTPRequest, Playback, Record, SetVariable, Switch
 from .types import MiddlewareType, NodeType
@@ -77,6 +77,12 @@ class Flow:
         elif middleware_type == MiddlewareType.tts:
             middleware_initialized = TTSMiddleware(
                 tts_middleware_content=middleware_model,
+                channel=channel,
+                default_variables=self.flow_variables,
+            )
+        elif middleware_type == MiddlewareType.asr:
+            middleware_initialized = ASRMiddleware(
+                asr_middleware_content=middleware_model,
                 channel=channel,
                 default_variables=self.flow_variables,
             )

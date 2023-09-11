@@ -18,3 +18,4 @@ class MiddlewareType(SerializableEnum):
     jwt = "jwt"
     basic = "basic"
     tts = "tts"
+    asr = "asr"
