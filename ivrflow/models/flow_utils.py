@@ -49,6 +49,8 @@ class FlowUtils(SerializableAttrs):
             return HTTPMiddleware(**middleware)
         elif middleware_type == MiddlewareType.tts:
             return TTSMiddleware(**middleware)
+        elif middleware_type == MiddlewareType.asr:
+            return ASRMiddleware(**middleware)
         else:
             log.warning(f"Middleware type {middleware_type} not found")
             return
