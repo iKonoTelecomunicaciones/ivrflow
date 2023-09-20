@@ -20,4 +20,3 @@ class Hangup(FlowObject):
     """
 
     chan: str = ib(default="")
-    o_connection: str = ib(default=None)

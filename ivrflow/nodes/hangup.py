@@ -17,14 +17,10 @@ class Hangup(Base):
     def chan(self) -> int:
         return self.render_data(data=self.content.chan)
 
-    @property
-    def o_connection(self) -> str:
-        return self.render_data(self.content.get("o_connection", ""))
-
     async def _update_node(self):
         await self.channel.update_ivr(
-            node_id=self.o_connection,
-            state=ChannelState.END if not self.o_connection else None,
+            node_id=None,
+            state=ChannelState.END,
         )
 
     async def run(self):
