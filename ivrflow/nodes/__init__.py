@@ -1,5 +1,6 @@
 from .base import Base, safe_data_convertion
 from .get_data import GetData
+from .hangup import Hangup
 from .http_request import HTTPRequest
 from .playback import Playback
 from .record import Record
