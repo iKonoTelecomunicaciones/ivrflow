@@ -13,6 +13,7 @@ class NodeType(SerializableEnum):
     set_variable = "set_variable"
     record = "record"
     hangup = "hangup"
+    set_music = "set_music"
 
 
 class MiddlewareType(SerializableEnum):
