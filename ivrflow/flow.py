@@ -9,7 +9,7 @@ from .channel import Channel
 from .flow_utils import FlowUtils
 from .middlewares import ASRMiddleware, HTTPMiddleware, TTSMiddleware
 from .models import Flow as FlowModel
-from .nodes import GetData, Hangup, HTTPRequest, Playback, Record, SetVariable, Switch
+from .nodes import GetData, Hangup, HTTPRequest, Playback, Record, SetMusic, SetVariable, Switch
 from .types import MiddlewareType, NodeType
 
 
@@ -141,6 +141,12 @@ class Flow:
         elif node_type == NodeType.hangup:
             node_initialized = Hangup(
                 hangup_content=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
+            )
+        elif node_type == NodeType.set_music:
+            node_initialized = SetMusic(
+                set_music_content=node_data,
                 default_variables=self.flow_variables,
                 channel=channel,
             )
