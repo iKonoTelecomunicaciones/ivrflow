@@ -12,4 +12,5 @@ from .nodes import (
     SetMusic,
     SetVariable,
     Switch,
+    Verbose,
 )
