@@ -14,6 +14,7 @@ class NodeType(SerializableEnum):
     record = "record"
     hangup = "hangup"
     set_music = "set_music"
+    verbose = "verbose"
 
 
 class MiddlewareType(SerializableEnum):

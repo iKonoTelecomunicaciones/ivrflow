@@ -8,7 +8,17 @@ from attr import dataclass, ib
 from mautrix.types import SerializableAttrs
 
 from ..types import NodeType
-from .nodes import GetData, Hangup, HTTPRequest, Playback, Record, SetMusic, SetVariable, Switch
+from .nodes import (
+    GetData,
+    Hangup,
+    HTTPRequest,
+    Playback,
+    Record,
+    SetMusic,
+    SetVariable,
+    Switch,
+    Verbose,
+)
 
 log: Logger = getLogger("ivrflow.models.flow")
 
@@ -59,3 +69,5 @@ class Flow(SerializableAttrs):
             return Hangup(**node)
         elif node_type == NodeType.set_music:
             return SetMusic(**node)
+        elif node_type == NodeType.verbose:
+            return Verbose(**node)

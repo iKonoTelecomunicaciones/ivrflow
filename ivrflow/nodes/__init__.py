@@ -7,3 +7,4 @@ from .record import Record
 from .set_music import SetMusic
 from .set_variable import SetVariable
 from .switch import Switch
+from .verbose import Verbose

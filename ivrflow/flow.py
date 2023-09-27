@@ -9,7 +9,17 @@ from .channel import Channel
 from .flow_utils import FlowUtils
 from .middlewares import ASRMiddleware, HTTPMiddleware, TTSMiddleware
 from .models import Flow as FlowModel
-from .nodes import GetData, Hangup, HTTPRequest, Playback, Record, SetMusic, SetVariable, Switch
+from .nodes import (
+    GetData,
+    Hangup,
+    HTTPRequest,
+    Playback,
+    Record,
+    SetMusic,
+    SetVariable,
+    Switch,
+    Verbose,
+)
 from .types import MiddlewareType, NodeType
 
 
@@ -149,6 +159,10 @@ class Flow:
                 set_music_content=node_data,
                 default_variables=self.flow_variables,
                 channel=channel,
+            )
+        elif node_type == NodeType.verbose:
+            node_initialized = Verbose(
+                verbose_content=node_data, default_variables=self.flow_variables, channel=channel
             )
         else:
             return
