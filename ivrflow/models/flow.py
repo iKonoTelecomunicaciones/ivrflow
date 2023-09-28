@@ -14,6 +14,7 @@ from .nodes import (
     HTTPRequest,
     Playback,
     Record,
+    SetCallerID,
     SetMusic,
     SetVariable,
     Switch,
@@ -71,3 +72,5 @@ class Flow(SerializableAttrs):
             return SetMusic(**node)
         elif node_type == NodeType.verbose:
             return Verbose(**node)
+        elif node_type == NodeType.set_callerid:
+            return SetCallerID(**node)

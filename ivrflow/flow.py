@@ -15,6 +15,7 @@ from .nodes import (
     HTTPRequest,
     Playback,
     Record,
+    SetCallerID,
     SetMusic,
     SetVariable,
     Switch,
@@ -163,6 +164,12 @@ class Flow:
         elif node_type == NodeType.verbose:
             node_initialized = Verbose(
                 verbose_content=node_data, default_variables=self.flow_variables, channel=channel
+            )
+        elif node_type == NodeType.set_callerid:
+            node_initialized = SetCallerID(
+                set_callerid_content=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
             )
         else:
             return

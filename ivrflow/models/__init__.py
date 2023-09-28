@@ -9,6 +9,7 @@ from .nodes import (
     HTTPRequest,
     Playback,
     Record,
+    SetCallerID,
     SetMusic,
     SetVariable,
     Switch,
