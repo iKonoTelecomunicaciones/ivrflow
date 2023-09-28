@@ -14,6 +14,7 @@ from .nodes import (
     HTTPRequest,
     Playback,
     Record,
+    SetCallerID,
     SetMusic,
     SetVariable,
     Switch,
@@ -46,7 +47,9 @@ class Flow(SerializableAttrs):
         )
 
     @classmethod
-    def initialize_node_dataclass(cls, node: Dict) -> Playback | Switch | HTTPRequest | GetData:
+    def initialize_node_dataclass(
+        cls, node: Dict
+    ) -> Playback | Switch | HTTPRequest | GetData | SetVariable | Record | Hangup | SetMusic | Verbose | SetCallerID:
         try:
             node_type = NodeType(node.get("type"))
         except ValueError:
@@ -71,3 +74,5 @@ class Flow(SerializableAttrs):
             return SetMusic(**node)
         elif node_type == NodeType.verbose:
             return Verbose(**node)
+        elif node_type == NodeType.set_callerid:
+            return SetCallerID(**node)

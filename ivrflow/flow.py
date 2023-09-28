@@ -15,6 +15,7 @@ from .nodes import (
     HTTPRequest,
     Playback,
     Record,
+    SetCallerID,
     SetMusic,
     SetVariable,
     Switch,
@@ -34,7 +35,19 @@ class Flow:
         self.nodes = self.content.nodes
         self.flow_utils = flow_utils
 
-    def _add_node_to_cache(self, node_data: Playback | Switch | HTTPRequest):
+    def _add_node_to_cache(
+        self,
+        node_data: Playback
+        | Switch
+        | HTTPRequest
+        | GetData
+        | SetVariable
+        | Record
+        | Hangup
+        | SetMusic
+        | Verbose
+        | SetCallerID,
+    ):
         self.nodes_by_id[node_data.id] = node_data
 
     @property
@@ -99,7 +112,9 @@ class Flow:
 
         return middleware_initialized
 
-    def node(self, channel: Channel) -> Playback | Switch | HTTPRequest | GetData | None:
+    def node(
+        self, channel: Channel
+    ) -> Playback | Switch | HTTPRequest | GetData | SetVariable | Record | Hangup | SetMusic | Verbose | SetCallerID | None:
         node_data = self.get_node_by_id(node_id=channel.node_id)
 
         if not node_data:
@@ -163,6 +178,12 @@ class Flow:
         elif node_type == NodeType.verbose:
             node_initialized = Verbose(
                 verbose_content=node_data, default_variables=self.flow_variables, channel=channel
+            )
+        elif node_type == NodeType.set_callerid:
+            node_initialized = SetCallerID(
+                set_callerid_content=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
             )
         else:
             return
