@@ -1,3 +1,4 @@
+from asyncio import gather
 from time import time
 from typing import TYPE_CHECKING, Dict, Union
 
@@ -62,12 +63,15 @@ class GetData(Switch):
                 filename=record_filename,
                 audio_format=record_format,
                 escape_digits="#",
-                timeout=20000,
-                silence=2000,
+                timeout=10000,
+                silence=2,
             )
             await self.channel.set_variable("asr", "{}")
-            await self.channel.set_variable("asr_file_path", f"{record_filename}.{record_format}")
-            await self.middleware.run()
+            await self.channel.set_variable("asr_file_path", f"{record_filename}")
+            (result1, result2) = await gather(
+                self.asterisk_conn.agi.stream_file("custom/progress"), self.middleware.run()
+            )
+
             result = self.middleware.text
             await self.channel.set_variable("asr_text", result)
 
