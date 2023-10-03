@@ -16,6 +16,7 @@ class NodeType(SerializableEnum):
     set_music = "set_music"
     verbose = "verbose"
     set_callerid = "set_callerid"
+    get_variable = "get_variable"
 
 
 class MiddlewareType(SerializableEnum):
