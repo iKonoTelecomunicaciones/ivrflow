@@ -12,7 +12,7 @@ class Exec_App(FlowObject):
     ```
     - id: v1
       type: exec_app
-      application: "PlayBack"
+      application: "Dial"
       options: "SIP/301"
       o_connection: m2
     ```
