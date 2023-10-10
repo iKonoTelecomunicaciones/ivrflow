@@ -12,7 +12,6 @@ from .models import Flow as FlowModel
 from .nodes import (
     Exec_App,
     GetData,
-    GetVariable,
     Hangup,
     HTTPRequest,
     Playback,
@@ -49,8 +48,7 @@ class Flow:
         | SetMusic
         | Verbose
         | SetCallerID
-        | Exec_App
-        | GetVariable,
+        | Exec_App,
     ):
         self.nodes_by_id[node_data.id] = node_data
 
@@ -118,7 +116,7 @@ class Flow:
 
     def node(
         self, channel: Channel
-    ) -> Playback | Switch | HTTPRequest | GetData | SetVariable | Record | Hangup | SetMusic | Verbose | SetCallerID | Exec_App | GetVariable | None:
+    ) -> Playback | Switch | HTTPRequest | GetData | SetVariable | Record | Hangup | SetMusic | Verbose | SetCallerID | Exec_App | None:
         node_data = self.get_node_by_id(node_id=channel.node_id)
 
         if not node_data:
@@ -192,12 +190,6 @@ class Flow:
         elif node_type == NodeType.exec_app:
             node_initialized = Exec_App(
                 exec_app_content=node_data,
-                default_variables=self.flow_variables,
-                channel=channel,
-            )
-        elif node_type == NodeType.get_variable:
-            node_initialized = GetVariable(
-                get_variable_content=node_data,
                 default_variables=self.flow_variables,
                 channel=channel,
             )
