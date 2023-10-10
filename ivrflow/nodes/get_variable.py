@@ -14,8 +14,8 @@ class GetVariable(Base):
         self.content: GetVariableModel = get_variable_content
 
     @property
-    def variable(self) -> str:
-        return self.render_data(data=self.content.variable)
+    def name(self) -> str:
+        return self.render_data(data=self.content.name)
 
     @property
     def o_connection(self) -> str:
@@ -28,10 +28,13 @@ class GetVariable(Base):
         )
 
     async def run(self):
-        self.log.info(
-            f"Channel {self.channel.channel_uniqueid} enters get_variable node {self.id}"
-        )
+        info_variable = await self.asterisk_conn.agi.get_variable(name=self.name)
+        value = info_variable.data.get("data")
 
-        await self.asterisk_conn.agi.get_variable(self.variable)
+        await self.channel.set_variable(self.content.variable, value)
+
+        self.log.info(
+            f"Node {self.id}, variable: {self.name} value: {value} to channel: {self.channel.channel_uniqueid}"
+        )
 
         await self._update_node()

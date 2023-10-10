@@ -8,16 +8,21 @@ class GetVariable(FlowObject):
     """
     ## GetVariable
 
-    This node returns the value of the indicated variable.
+    Get a channel variable.
+
+    This node returns the value of the indicated channel variable.
 
     content:
 
     ```
     - id: p1
-      variable: name_variable
+      type: get_variable
+      name: var_name_ast
+      variable: var_name_result
       o_connection: m2
     ```
     """
 
-    variable: str = ib(default="")
+    name: str = ib(default="")
+    variable: str = ib(factory=str)
     o_connection: str = ib(default=None)
