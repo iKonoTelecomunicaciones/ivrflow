@@ -6,7 +6,6 @@ from .nodes import (
     Case,
     Exec_App,
     GetData,
-    GetVariable,
     Hangup,
     HTTPRequest,
     Playback,
