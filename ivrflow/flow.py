@@ -12,6 +12,7 @@ from .models import Flow as FlowModel
 from .nodes import (
     Answer,
     DatabaseDel,
+    DatabaseGet,
     DatabasePut,
     Email,
     Exec_App,
@@ -55,12 +56,13 @@ class Flow:
         | Verbose
         | SetCallerID
         | Email
-        | Exec_App
         | GetFullVariable
         | DatabaseDel
         | DatabasePut
         | Answer
-        | GotoOnExit,
+        | GotoOnExit
+        | Exec_App
+        | DatabaseGet,
     ):
         self.nodes_by_id[node_data.id] = node_data
 
@@ -262,6 +264,12 @@ class Flow:
         elif node_type == NodeType.goto_on_exit:
             node_initialized = GotoOnExit(
                 goto_on_exit_content=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
+            )
+        elif node_type == NodeType.database_get:
+            node_initialized = DatabaseGet(
+                database_get_content=node_data,
                 default_variables=self.flow_variables,
                 channel=channel,
             )
