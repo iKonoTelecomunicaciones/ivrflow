@@ -20,9 +20,9 @@ def convert_to_bool(item) -> Dict | List | str:
     elif isinstance(item, list):
         return [convert_to_bool(i) for i in item]
     elif isinstance(item, str):
-        if item.lower().strip() == "true":
+        if item.strip().lower() == "true":
             return True
-        elif item.lower().strip() == "false":
+        elif item.strip().lower() == "false":
             return False
         else:
             return item

@@ -1,8 +1,4 @@
-from asyncio import gather
-from time import time
 from typing import TYPE_CHECKING, Dict, Union
-
-from sqids import Sqids
 
 from ..channel import Channel
 from ..models import GetData as GetDataModel
@@ -11,8 +7,6 @@ from .switch import Switch
 
 if TYPE_CHECKING:
     from ..middlewares import ASRMiddleware, TTSMiddleware
-
-sqids = Sqids()
 
 
 class GetData(Switch):
@@ -51,30 +45,7 @@ class GetData(Switch):
             await self.channel.set_variable("tts_sound_path", sound_path)
 
         if middleware_type == MiddlewareType.asr:
-            record_suffix = sqids.encode([int(time())])
-            record_filename, record_format = (
-                f"{self.channel.channel_uniqueid}_{record_suffix}",
-                "wav",
-            )
-
-            if sound_path:
-                await self.asterisk_conn.agi.stream_file(sound_path)
-            result = await self.asterisk_conn.agi.record_file(
-                filename=record_filename,
-                audio_format=record_format,
-                escape_digits="#",
-                timeout=10000,
-                silence=2,
-            )
-            await self.channel.set_variable("asr", "{}")
-            await self.channel.set_variable("asr_file_path", f"{record_filename}")
-            (result1, result2) = await gather(
-                self.asterisk_conn.agi.stream_file("custom/progress"), self.middleware.run()
-            )
-
-            result = self.middleware.text
-            await self.channel.set_variable("asr_text", result)
-
+            result = await self.middleware.run(sound_path)
         else:
             variable = await self.asterisk_conn.agi.get_data(
                 filename=sound_path,

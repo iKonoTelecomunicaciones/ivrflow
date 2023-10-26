@@ -20,6 +20,10 @@ class ASRMiddleware(FlowObject):
       method: GET
       url: "http://localhost:5000/asr"
       text: "{{ content }}"
+      record_format: "wav"
+      scape_digits: "#"
+      timeout: 10000
+      silence: 2
       variables:
           content: "text"
       cookies:
@@ -39,8 +43,10 @@ class ASRMiddleware(FlowObject):
 
     method: str = ib(default=None)
     url: str = ib(default=None)
-    text: str = ib(default=None)
-    variables: Dict[str, Any] = ib(factory=dict)
+    record_format: str = ib(default="wav")
+    escape_digits: str = ib(default="#")
+    timeout: int = ib(default=10000)
+    silence: int = ib(default=2)
     cookies: Dict[str, Any] = ib(factory=dict)
     query_params: Dict[str, Any] = ib(factory=dict)
     headers: Dict[str, Any] = ib(factory=dict)

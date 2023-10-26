@@ -19,6 +19,8 @@ class GetData(Switch):
         type: get_data
         text: "Please enter your account number"
         file: "vm-exten"
+        # This is the sound file that will be played to the user while the ASR is executed
+        progress_sound: "custom/progress"
         middleware: m1
         timeout: 5
         max_digits: 1
@@ -35,6 +37,7 @@ class GetData(Switch):
 
     file: str = ib(factory=str)
     text: str = ib(default=None)
+    progress_sound: str = ib(default=None)
     middleware: str = ib(default=None)
     timeout: int = ib(factory=int)
     max_digits: int = ib(factory=int)
@@ -46,6 +49,7 @@ class GetData(Switch):
             id=node.get("id"),
             type=node.get("type"),
             file=node.get("file"),
+            progress_sound=node.get("progress_sound"),
             text=node.get("text"),
             middleware=node.get("middleware"),
             timeout=node.get("timeout", 5000),
