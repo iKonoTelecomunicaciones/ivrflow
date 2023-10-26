@@ -42,7 +42,6 @@ class GetData(Switch):
             await self.channel.set_variable("tts_text", self.text)
             await self.middleware.run()
             sound_path = self.middleware.sound_path
-            await self.channel.set_variable("tts_sound_path", sound_path)
 
         if middleware_type == MiddlewareType.asr:
             result = await self.middleware.run(sound_path)
