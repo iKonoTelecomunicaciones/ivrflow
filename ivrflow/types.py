@@ -17,6 +17,7 @@ class NodeType(SerializableEnum):
     verbose = "verbose"
     set_callerid = "set_callerid"
     exec_app = "exec_app"
+    get_full_variable = "get_full_variable"
 
 
 class MiddlewareType(SerializableEnum):

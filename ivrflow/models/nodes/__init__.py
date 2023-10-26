@@ -1,5 +1,6 @@
 from .exec_app import Exec_App
 from .get_data import GetData
+from .get_full_variable import GetFullVariable
 from .hangup import Hangup
 from .http_request import HTTPRequest
 from .playback import Playback
