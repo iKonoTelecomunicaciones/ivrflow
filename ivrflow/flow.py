@@ -9,7 +9,19 @@ from .channel import Channel
 from .flow_utils import FlowUtils
 from .middlewares import ASRMiddleware, HTTPMiddleware, TTSMiddleware
 from .models import Flow as FlowModel
-from .nodes import GetData, HTTPRequest, Playback, Record, SetVariable, Switch
+from .nodes import (
+    Exec_App,
+    GetData,
+    Hangup,
+    HTTPRequest,
+    Playback,
+    Record,
+    SetCallerID,
+    SetMusic,
+    SetVariable,
+    Switch,
+    Verbose,
+)
 from .types import MiddlewareType, NodeType
 
 
@@ -24,7 +36,20 @@ class Flow:
         self.nodes = self.content.nodes
         self.flow_utils = flow_utils
 
-    def _add_node_to_cache(self, node_data: Playback | Switch | HTTPRequest):
+    def _add_node_to_cache(
+        self,
+        node_data: Playback
+        | Switch
+        | HTTPRequest
+        | GetData
+        | SetVariable
+        | Record
+        | Hangup
+        | SetMusic
+        | Verbose
+        | SetCallerID
+        | Exec_App,
+    ):
         self.nodes_by_id[node_data.id] = node_data
 
     @property
@@ -89,7 +114,9 @@ class Flow:
 
         return middleware_initialized
 
-    def node(self, channel: Channel) -> Playback | Switch | HTTPRequest | GetData | None:
+    def node(
+        self, channel: Channel
+    ) -> Playback | Switch | HTTPRequest | GetData | SetVariable | Record | Hangup | SetMusic | Verbose | SetCallerID | Exec_App | None:
         node_data = self.get_node_by_id(node_id=channel.node_id)
 
         if not node_data:
@@ -137,6 +164,34 @@ class Flow:
         elif node_type == NodeType.record:
             node_initialized = Record(
                 record_content=node_data, default_variables=self.flow_variables, channel=channel
+            )
+        elif node_type == NodeType.hangup:
+            node_initialized = Hangup(
+                hangup_content=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
+            )
+        elif node_type == NodeType.set_music:
+            node_initialized = SetMusic(
+                set_music_content=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
+            )
+        elif node_type == NodeType.verbose:
+            node_initialized = Verbose(
+                verbose_content=node_data, default_variables=self.flow_variables, channel=channel
+            )
+        elif node_type == NodeType.set_callerid:
+            node_initialized = SetCallerID(
+                set_callerid_content=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
+            )
+        elif node_type == NodeType.exec_app:
+            node_initialized = Exec_App(
+                exec_app_content=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
             )
         else:
             return

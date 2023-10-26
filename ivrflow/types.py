@@ -12,6 +12,11 @@ class NodeType(SerializableEnum):
     get_data = "get_data"
     set_variable = "set_variable"
     record = "record"
+    hangup = "hangup"
+    set_music = "set_music"
+    verbose = "verbose"
+    set_callerid = "set_callerid"
+    exec_app = "exec_app"
 
 
 class MiddlewareType(SerializableEnum):
