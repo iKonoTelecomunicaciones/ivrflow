@@ -4,3 +4,4 @@ ruamel.yaml>=0.15.35,<0.18
 jinja2>=2,<4
 jinja2-ansible-filters==1.3.2
 asyncpg>=0.26,<0.30
+sqids
