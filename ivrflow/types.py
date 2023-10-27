@@ -22,6 +22,7 @@ class NodeType(SerializableEnum):
     database_del = "database_del"
     database_put = "database_put"
     answer = "answer"
+    goto_on_exit = "goto_on_exit"
 
 
 class MiddlewareType(SerializableEnum):

@@ -16,6 +16,7 @@ from .nodes import (
     Exec_App,
     GetData,
     GetFullVariable,
+    GotoOnExit,
     Hangup,
     HTTPRequest,
     Playback,
@@ -72,6 +73,7 @@ class Flow(SerializableAttrs):
         | DatabaseDel
         | DatabasePut
         | Answer
+        | GotoOnExit
     ):
         try:
             node_type = NodeType(node.get("type"))
@@ -111,3 +113,5 @@ class Flow(SerializableAttrs):
             return DatabasePut(**node)
         elif node_type == NodeType.answer:
             return Answer(**node)
+        elif node_type == NodeType.goto_on_exit:
+            return GotoOnExit(**node)
