@@ -274,12 +274,6 @@ class Flow:
                 default_variables=self.flow_variables,
                 channel=channel,
             )
-        elif node_type == NodeType.database_get:
-            node_initialized = DatabaseGet(
-                database_get_content=node_data,
-                default_variables=self.flow_variables,
-                channel=channel,
-            )
         else:
             return
 
