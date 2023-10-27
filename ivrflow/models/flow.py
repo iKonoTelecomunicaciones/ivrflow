@@ -12,6 +12,7 @@ from .nodes import (
     Exec_App,
     GetData,
     GetFullVariable,
+    GotoOnExit,
     Hangup,
     HTTPRequest,
     Playback,
@@ -51,7 +52,7 @@ class Flow(SerializableAttrs):
     @classmethod
     def initialize_node_dataclass(
         cls, node: Dict
-    ) -> Playback | Switch | HTTPRequest | GetData | SetVariable | Record | Hangup | SetMusic | Verbose | SetCallerID | Exec_App | GetFullVariable:
+    ) -> Playback | Switch | HTTPRequest | GetData | SetVariable | Record | Hangup | SetMusic | Verbose | SetCallerID | Exec_App | GetFullVariable | GotoOnExit:
         try:
             node_type = NodeType(node.get("type"))
         except ValueError:
@@ -82,3 +83,5 @@ class Flow(SerializableAttrs):
             return Exec_App(**node)
         elif node_type == NodeType.get_full_variable:
             return GetFullVariable(**node)
+        elif node_type == NodeType.goto_on_exit:
+            return GotoOnExit(**node)

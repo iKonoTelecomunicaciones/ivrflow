@@ -13,6 +13,7 @@ from .nodes import (
     Exec_App,
     GetData,
     GetFullVariable,
+    GotoOnExit,
     Hangup,
     HTTPRequest,
     Playback,
@@ -50,7 +51,8 @@ class Flow:
         | Verbose
         | SetCallerID
         | Exec_App
-        | GetFullVariable,
+        | GetFullVariable
+        | GotoOnExit,
     ):
         self.nodes_by_id[node_data.id] = node_data
 
@@ -118,7 +120,7 @@ class Flow:
 
     def node(
         self, channel: Channel
-    ) -> Playback | Switch | HTTPRequest | GetData | SetVariable | Record | Hangup | SetMusic | Verbose | SetCallerID | Exec_App | GetFullVariable | None:
+    ) -> Playback | Switch | HTTPRequest | GetData | SetVariable | Record | Hangup | SetMusic | Verbose | SetCallerID | Exec_App | GetFullVariable | GotoOnExit | None:
         node_data = self.get_node_by_id(node_id=channel.node_id)
 
         if not node_data:
@@ -198,6 +200,12 @@ class Flow:
         elif node_type == NodeType.get_full_variable:
             node_initialized = GetFullVariable(
                 get_full_variable_content=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
+            )
+        elif node_type == NodeType.goto_on_exit:
+            node_initialized = GotoOnExit(
+                goto_on_exit_content=node_data,
                 default_variables=self.flow_variables,
                 channel=channel,
             )
