@@ -7,6 +7,7 @@ from .nodes import (
     DatabaseGet,
     Exec_App,
     GetData,
+    GetFullVariable,
     Hangup,
     HTTPRequest,
     Playback,

@@ -13,6 +13,7 @@ from .nodes import (
     DatabaseGet,
     Exec_App,
     GetData,
+    GetFullVariable,
     Hangup,
     HTTPRequest,
     Playback,
@@ -50,7 +51,8 @@ class Flow:
         | Verbose
         | SetCallerID
         | Exec_App
-        | DatabaseGet,
+        | DatabaseGet
+        | GetFullVariable,
     ):
         self.nodes_by_id[node_data.id] = node_data
 
@@ -118,7 +120,7 @@ class Flow:
 
     def node(
         self, channel: Channel
-    ) -> Playback | Switch | HTTPRequest | GetData | SetVariable | Record | Hangup | SetMusic | Verbose | SetCallerID | Exec_App | DatabaseGet | None:
+    ) -> Playback | Switch | HTTPRequest | GetData | SetVariable | Record | Hangup | SetMusic | Verbose | SetCallerID | Exec_App | DatabaseGet | GetFullVariable | None:
         node_data = self.get_node_by_id(node_id=channel.node_id)
 
         if not node_data:
@@ -198,6 +200,10 @@ class Flow:
         elif node_type == NodeType.database_get:
             node_initialized = DatabaseGet(
                 database_get_content=node_data,
+            )
+        elif node_type == NodeType.get_full_variable:
+            node_initialized = GetFullVariable(
+                get_full_variable_content=node_data,
                 default_variables=self.flow_variables,
                 channel=channel,
             )

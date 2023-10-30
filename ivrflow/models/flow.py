@@ -12,6 +12,7 @@ from .nodes import (
     DatabaseGet,
     Exec_App,
     GetData,
+    GetFullVariable,
     Hangup,
     HTTPRequest,
     Playback,
@@ -51,7 +52,7 @@ class Flow(SerializableAttrs):
     @classmethod
     def initialize_node_dataclass(
         cls, node: Dict
-    ) -> Playback | Switch | HTTPRequest | GetData | SetVariable | Record | Hangup | SetMusic | Verbose | SetCallerID | Exec_App | DatabaseGet:
+    ) -> Playback | Switch | HTTPRequest | GetData | SetVariable | Record | Hangup | SetMusic | Verbose | SetCallerID | Exec_App | GetFullVariable | DatabaseGet:
         try:
             node_type = NodeType(node.get("type"))
         except ValueError:
@@ -82,3 +83,5 @@ class Flow(SerializableAttrs):
             return Exec_App(**node)
         elif node_type == NodeType.database_get:
             return DatabaseGet(**node)
+        elif node_type == NodeType.get_full_variable:
+            return GetFullVariable(**node)

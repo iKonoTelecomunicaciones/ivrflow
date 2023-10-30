@@ -1,12 +1,17 @@
+from asyncio import gather
+from time import time
 from typing import Dict, Tuple
 
 from aiohttp import ClientTimeout, ContentTypeError
 from mautrix.util.config import RecursiveDict
 from ruamel.yaml.comments import CommentedMap
+from sqids import Sqids
 
 from ..channel import Channel
 from ..models import ASRMiddleware as ASRMiddlewareModel
 from ..nodes import Base
+
+sqids = Sqids()
 
 
 class ASRMiddleware(Base):
@@ -60,7 +65,35 @@ class ASRMiddleware(Base):
     def json(self) -> Dict:
         return self.render_data(self.content.json)
 
-    async def run(self) -> Tuple[int, str]:
+    async def run(self, sound_path: str, progress_sound: str = None):
+        record_suffix = sqids.encode([int(time())])
+        record_filename, record_format = (
+            f"{self.channel.channel_uniqueid}_{record_suffix}",
+            self.content.record_format,
+        )
+
+        if sound_path:
+            await self.asterisk_conn.agi.stream_file(sound_path)
+
+        result = await self.asterisk_conn.agi.record_file(
+            filename=record_filename,
+            audio_format=self.content.record_format,
+            escape_digits=self.content.escape_digits,
+            timeout=self.content.timeout,
+            silence=self.content.silence,
+        )
+
+        await self.channel.set_variable("asr_file_path", record_filename)
+        if progress_sound:
+            (_, result) = await gather(
+                self.asterisk_conn.agi.stream_file(progress_sound), self.http_request()
+            )
+        else:
+            result = await self.http_request()
+
+        return result
+
+    async def http_request(self) -> Tuple[int, str]:
         """Recognize the text and return the status code and the text."""
 
         request_body = {}
@@ -105,28 +138,4 @@ class ASRMiddleware(Base):
         except ContentTypeError:
             response_data = {}
 
-        if isinstance(response_data, dict):
-            # Tulir and its magic since time immemorial
-            serialized_data = RecursiveDict(CommentedMap(**response_data))
-            if self.middleware_variables:
-                for variable in self.middleware_variables:
-                    try:
-                        variables[variable] = self.render_data(
-                            serialized_data[self.middleware_variables[variable]]
-                        )
-                    except KeyError:
-                        pass
-        elif isinstance(response_data, str):
-            if self.middleware_variables:
-                for variable in self.middleware_variables:
-                    try:
-                        variables[variable] = self.render_data(response_data)
-                    except KeyError:
-                        pass
-
-                    break
-
-        if variables:
-            await self.channel.set_variables(variables=variables)
-
-        return response.status, await response.text()
+        return response_data

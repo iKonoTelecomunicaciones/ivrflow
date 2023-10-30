@@ -4,6 +4,7 @@ from logging import Logger, getLogger
 
 from aioagi import runner
 from aioagi.app import AGIApplication
+from aioagi.exceptions import AGIAppError
 from aioagi.urldispathcer import AGIView
 from aiohttp import ClientSession, TraceConfig
 from mautrix.util.async_db import Database, DatabaseException
@@ -63,7 +64,11 @@ class IVRFlow(AGIView):
             f"The [channel: {channel.channel_uniqueid}] [node: {node.id}] [state: {channel.state}]"
         )
 
-        await node.run()
+        try:
+            await node.run()
+        except AGIAppError as e:
+            log.error(f"Error in node {node.id}", exc_info=e)
+            return
 
         if channel.state == ChannelState.END:
             log.debug(f"The channel {channel.channel_uniqueid} has terminated the flow")
