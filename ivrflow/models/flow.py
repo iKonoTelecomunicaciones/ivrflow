@@ -119,7 +119,3 @@ class Flow(SerializableAttrs):
             return Answer(**node)
         elif node_type == NodeType.goto_on_exit:
             return GotoOnExit(**node)
-        elif node_type == NodeType.database_get:
-            return DatabaseGet(**node)
-        elif node_type == NodeType.email:
-            return Email(**node)
