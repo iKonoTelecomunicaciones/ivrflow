@@ -10,6 +10,7 @@ from .flow_utils import FlowUtils
 from .middlewares import ASRMiddleware, HTTPMiddleware, TTSMiddleware
 from .models import Flow as FlowModel
 from .nodes import (
+    Answer,
     Exec_App,
     GetData,
     GetFullVariable,
@@ -50,7 +51,8 @@ class Flow:
         | Verbose
         | SetCallerID
         | Exec_App
-        | GetFullVariable,
+        | GetFullVariable
+        | Answer,
     ):
         self.nodes_by_id[node_data.id] = node_data
 
@@ -118,7 +120,7 @@ class Flow:
 
     def node(
         self, channel: Channel
-    ) -> Playback | Switch | HTTPRequest | GetData | SetVariable | Record | Hangup | SetMusic | Verbose | SetCallerID | Exec_App | GetFullVariable | None:
+    ) -> Playback | Switch | HTTPRequest | GetData | SetVariable | Record | Hangup | SetMusic | Verbose | SetCallerID | Exec_App | GetFullVariable | Answer | None:
         node_data = self.get_node_by_id(node_id=channel.node_id)
 
         if not node_data:
@@ -198,6 +200,12 @@ class Flow:
         elif node_type == NodeType.get_full_variable:
             node_initialized = GetFullVariable(
                 get_full_variable_content=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
+            )
+        elif node_type == NodeType.answer:
+            node_initialized = Answer(
+                answer_content=node_data,
                 default_variables=self.flow_variables,
                 channel=channel,
             )
