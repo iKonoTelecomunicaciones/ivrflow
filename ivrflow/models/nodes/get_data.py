@@ -1,4 +1,6 @@
-from typing import Dict
+from __future__ import annotations
+
+from typing import Dict, List
 
 from attr import dataclass, ib
 
@@ -38,7 +40,7 @@ class GetData(Switch):
     file: str = ib(factory=str)
     text: str = ib(default=None)
     progress_sound: str = ib(default=None)
-    middleware: str = ib(default=None)
+    middleware: str | List[str] = ib(default=None)
     timeout: int = ib(factory=int)
     max_digits: int = ib(factory=int)
     variable: str = ib(factory=str)

@@ -118,7 +118,21 @@ class Flow:
 
     def node(
         self, channel: Channel
-    ) -> Playback | Switch | HTTPRequest | GetData | SetVariable | Record | Hangup | SetMusic | Verbose | SetCallerID | Exec_App | GetFullVariable | None:
+    ) -> (
+        Playback
+        | Switch
+        | HTTPRequest
+        | GetData
+        | SetVariable
+        | Record
+        | Hangup
+        | SetMusic
+        | Verbose
+        | SetCallerID
+        | Exec_App
+        | GetFullVariable
+        | None
+    ):
         node_data = self.get_node_by_id(node_id=channel.node_id)
 
         if not node_data:
@@ -154,8 +168,15 @@ class Flow:
             node_initialized = GetData(
                 get_data_content=node_data, channel=channel, default_variables=self.flow_variables
             )
+
             if node_data.middleware:
-                middleware = self.middleware(node_data.middleware, channel=channel)
+                if isinstance(node_data.middleware, list):
+                    middleware = []
+                    for middleware_id in node_data.middleware:
+                        middleware.append(self.middleware(middleware_id, channel=channel))
+                else:
+                    middleware = self.middleware(node_data.middleware, channel=channel)
+
                 node_initialized.middleware = middleware
         elif node_type == NodeType.set_variable:
             node_initialized = SetVariable(
