@@ -14,7 +14,7 @@ from .nodes import (
     DatabaseGet,
     DatabasePut,
     Email,
-    Exec_App,
+    ExecApp,
     GetData,
     GetFullVariable,
     GotoOnExit,
@@ -69,12 +69,13 @@ class Flow(SerializableAttrs):
         | SetMusic
         | Verbose
         | SetCallerID
-        | Exec_App
         | GetFullVariable
         | DatabaseDel
         | DatabasePut
         | Answer
         | GotoOnExit
+        | ExecApp
+        | DatabaseGet
     ):
         try:
             node_type = NodeType(node.get("type"))
@@ -103,7 +104,9 @@ class Flow(SerializableAttrs):
         elif node_type == NodeType.set_callerid:
             return SetCallerID(**node)
         elif node_type == NodeType.exec_app:
-            return Exec_App(**node)
+            return ExecApp(**node)
+        elif node_type == NodeType.database_get:
+            return DatabaseGet(**node)
         elif node_type == NodeType.get_full_variable:
             return GetFullVariable(**node)
         elif node_type == NodeType.database_del:

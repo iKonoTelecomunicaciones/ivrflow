@@ -15,7 +15,7 @@ from .nodes import (
     DatabaseGet,
     DatabasePut,
     Email,
-    Exec_App,
+    ExecApp,
     GetData,
     GetFullVariable,
     GotoOnExit,
@@ -61,8 +61,8 @@ class Flow:
         | DatabasePut
         | Answer
         | GotoOnExit
-        | Exec_App
-        | DatabaseGet,
+        | DatabaseGet
+        | ExecApp,
     ):
         self.nodes_by_id[node_data.id] = node_data
 
@@ -142,12 +142,13 @@ class Flow:
         | SetMusic
         | Verbose
         | SetCallerID
-        | Exec_App
         | GetFullVariable
         | DatabaseDel
         | DatabasePut
         | Answer
         | GotoOnExit
+        | ExecApp
+        | DatabaseGet
         | None
     ):
         node_data = self.get_node_by_id(node_id=channel.node_id)
@@ -228,7 +229,7 @@ class Flow:
                 channel=channel,
             )
         elif node_type == NodeType.exec_app:
-            node_initialized = Exec_App(
+            node_initialized = ExecApp(
                 exec_app_content=node_data,
                 default_variables=self.flow_variables,
                 channel=channel,
