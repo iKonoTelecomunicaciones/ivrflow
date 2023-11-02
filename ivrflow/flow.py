@@ -233,6 +233,12 @@ class Flow:
                 default_variables=self.flow_variables,
                 channel=channel,
             )
+        elif node_type == NodeType.database_get:
+            node_initialized = DatabaseGet(
+                database_get_content=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
+            )
         elif node_type == NodeType.get_full_variable:
             node_initialized = GetFullVariable(
                 get_full_variable_content=node_data,
