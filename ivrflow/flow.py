@@ -11,6 +11,7 @@ from .middlewares import ASRMiddleware, HTTPMiddleware, TTSMiddleware
 from .models import Flow as FlowModel
 from .nodes import (
     DatabaseDel,
+    Email,
     Exec_App,
     GetData,
     GetFullVariable,
@@ -50,6 +51,7 @@ class Flow:
         | SetMusic
         | Verbose
         | SetCallerID
+        | Email
         | Exec_App
         | GetFullVariable
         | DatabaseDel,
@@ -230,6 +232,10 @@ class Flow:
                 database_del_content=node_data,
                 default_variables=self.flow_variables,
                 channel=channel,
+            )
+        elif node_type == NodeType.email:
+            node_initialized = Email(
+                email_content=node_data, default_variables=self.flow_variables, channel=channel
             )
         else:
             return
