@@ -10,6 +10,7 @@ from .flow_utils import FlowUtils
 from .middlewares import ASRMiddleware, HTTPMiddleware, TTSMiddleware
 from .models import Flow as FlowModel
 from .nodes import (
+    Answer,
     DatabaseDel,
     DatabasePut,
     Email,
@@ -56,7 +57,8 @@ class Flow:
         | Exec_App
         | GetFullVariable
         | DatabaseDel
-        | DatabasePut,
+        | DatabasePut
+        | Answer,
     ):
         self.nodes_by_id[node_data.id] = node_data
 
@@ -127,6 +129,7 @@ class Flow:
     ) -> (
         Playback
         | Switch
+        | Email
         | HTTPRequest
         | GetData
         | SetVariable
@@ -139,6 +142,7 @@ class Flow:
         | GetFullVariable
         | DatabaseDel
         | DatabasePut
+        | Answer
         | None
     ):
         node_data = self.get_node_by_id(node_id=channel.node_id)
@@ -243,6 +247,12 @@ class Flow:
         elif node_type == NodeType.database_put:
             node_initialized = DatabasePut(
                 database_put_content=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
+            )
+        elif node_type == NodeType.answer:
+            node_initialized = Answer(
+                answer_content=node_data,
                 default_variables=self.flow_variables,
                 channel=channel,
             )

@@ -21,6 +21,7 @@ class NodeType(SerializableEnum):
     get_full_variable = "get_full_variable"
     database_del = "database_del"
     database_put = "database_put"
+    answer = "answer"
 
 
 class MiddlewareType(SerializableEnum):
