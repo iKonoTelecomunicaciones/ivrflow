@@ -16,6 +16,7 @@ class NodeType(SerializableEnum):
     set_music = "set_music"
     verbose = "verbose"
     set_callerid = "set_callerid"
+    email = "email"
     exec_app = "exec_app"
     get_full_variable = "get_full_variable"
 

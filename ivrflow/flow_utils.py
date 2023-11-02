@@ -7,6 +7,7 @@ from mautrix.util.logging import TraceLogger
 
 from .middlewares.http import HTTPMiddleware
 from .models import FlowUtils as FlowUtilsModel
+from .models.middlewares.email import EmailServer
 from .models.middlewares.http import HTTPMiddleware as HTTPMiddlewareModel
 
 log: TraceLogger = logging.getLogger("ivrflow.flow_utils")
@@ -15,6 +16,7 @@ log: TraceLogger = logging.getLogger("ivrflow.flow_utils")
 class FlowUtils:
     # Cache dicts
     middlewares_by_id: Dict[str, HTTPMiddlewareModel] = {}
+    email_servers_by_id: Dict[str, EmailServer] = {}
 
     def __init__(self) -> None:
         self.data: FlowUtilsModel = FlowUtilsModel.load_flow_utils()
@@ -49,3 +51,12 @@ class FlowUtils:
                     return middleware
         except AttributeError:
             log.warning("No middlewares found in flow_utils.json")
+
+    def get_email_servers(self) -> Dict[str, EmailServer]:
+        try:
+            for email_server in self.data.email_servers:
+                self.email_servers_by_id[email_server.server_id] = email_server
+        except AttributeError:
+            log.warning("No email servers found in flow_utils.json")
+
+        return self.email_servers_by_id

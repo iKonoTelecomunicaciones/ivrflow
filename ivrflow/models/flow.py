@@ -9,6 +9,7 @@ from mautrix.types import SerializableAttrs
 
 from ..types import NodeType
 from .nodes import (
+    Email,
     Exec_App,
     GetData,
     GetFullVariable,
@@ -82,3 +83,5 @@ class Flow(SerializableAttrs):
             return Exec_App(**node)
         elif node_type == NodeType.get_full_variable:
             return GetFullVariable(**node)
+        elif node_type == NodeType.email:
+            return Email(**node)

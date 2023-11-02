@@ -10,6 +10,7 @@ from .flow_utils import FlowUtils
 from .middlewares import ASRMiddleware, HTTPMiddleware, TTSMiddleware
 from .models import Flow as FlowModel
 from .nodes import (
+    Email,
     Exec_App,
     GetData,
     GetFullVariable,
@@ -49,6 +50,7 @@ class Flow:
         | SetMusic
         | Verbose
         | SetCallerID
+        | Email
         | Exec_App
         | GetFullVariable,
     ):
@@ -200,6 +202,10 @@ class Flow:
                 get_full_variable_content=node_data,
                 default_variables=self.flow_variables,
                 channel=channel,
+            )
+        elif node_type == NodeType.email:
+            node_initialized = Email(
+                email_content=node_data, default_variables=self.flow_variables, channel=channel
             )
         else:
             return

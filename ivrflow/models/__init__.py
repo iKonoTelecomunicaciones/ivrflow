@@ -4,6 +4,7 @@ from .flow_utils import FlowUtils
 from .middlewares import ASRMiddleware, HTTPMiddleware, TTSMiddleware
 from .nodes import (
     Case,
+    Email,
     Exec_App,
     GetData,
     GetFullVariable,
