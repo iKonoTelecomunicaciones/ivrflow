@@ -17,15 +17,13 @@ class DatabaseGet(FlowObject):
     ```
       - id: start
         type: database_get
-        family: "family"
-        key: "key"
-        variable: return_database_get
+        variables:
+          var_name: "/Exten/SIP/199"
+          other_var: "/Member/Name/899"
         o_connection: m2
 
     ```
     """
 
-    family: str = ib(default="")
-    key: str = ib(default="")
-    variable: str = ib(default="")
+    variables: Dict = ib(factory=Dict)
     o_connection: str = ib(default="")

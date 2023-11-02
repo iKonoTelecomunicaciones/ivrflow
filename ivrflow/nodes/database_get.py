@@ -14,16 +14,8 @@ class DatabaseGet(Base):
         self.content: DatabaseGetModel = database_get_content
 
     @property
-    def family(self):
-        return self.render_data(data=self.content.family)
-
-    @property
-    def key(self):
-        return self.render_data(data=self.content.key)
-
-    @property
-    def variable(self):
-        return self.render_data(data=self.content.variable)
+    def variables(self) -> dict:
+        return self.render_data(data=self.content.variables)
 
     @property
     def o_connection(self) -> str:
@@ -36,21 +28,12 @@ class DatabaseGet(Base):
         )
 
     async def run(self):
-        self.log.info(
-            f"Channel {self.channel.channel_uniqueid} enters database_get node {self.id}"
-        )
-        self.log.info(
-            f"Setting database_get Family='{self.family}' and Key='{self.key}' to channel: {self.channel.channel_uniqueid}"
-        )
-
-        database_get_info = await self.asterisk_conn.agi.database_get(
-            family=self.family,
-            key=self.key,
-        )
-        value = database_get_info.data.get("data")
-
-        self.log.info(f" ### database_get_info'{database_get_info}' and '{value}'")
-
-        await self.channel.set_variable(self.content.variable, value)
+        for variable, entry in self.variables.items():
+            family, key = [x.strip("/") for x in entry.rsplit("/", 1)]
+            db_result = await self.asterisk_conn.agi.database_get(family, key)
+            value = db_result.data.get("data")
+            if value:
+                self.log.info(f"Setting {variable}: {value} from {entry} database entry")
+                await self.channel.set_variable(variable, value)
 
         await self._update_node()
