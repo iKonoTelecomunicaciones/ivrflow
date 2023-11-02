@@ -10,6 +10,7 @@ from .flow_utils import FlowUtils
 from .middlewares import ASRMiddleware, HTTPMiddleware, TTSMiddleware
 from .models import Flow as FlowModel
 from .nodes import (
+    DatabaseDel,
     Exec_App,
     GetData,
     GetFullVariable,
@@ -50,7 +51,8 @@ class Flow:
         | Verbose
         | SetCallerID
         | Exec_App
-        | GetFullVariable,
+        | GetFullVariable
+        | DatabaseDel,
     ):
         self.nodes_by_id[node_data.id] = node_data
 
@@ -131,6 +133,7 @@ class Flow:
         | SetCallerID
         | Exec_App
         | GetFullVariable
+        | DatabaseDel
         | None
     ):
         node_data = self.get_node_by_id(node_id=channel.node_id)
@@ -219,6 +222,12 @@ class Flow:
         elif node_type == NodeType.get_full_variable:
             node_initialized = GetFullVariable(
                 get_full_variable_content=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
+            )
+        elif node_type == NodeType.database_del:
+            node_initialized = DatabaseDel(
+                database_del_content=node_data,
                 default_variables=self.flow_variables,
                 channel=channel,
             )
