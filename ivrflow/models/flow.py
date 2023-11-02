@@ -15,6 +15,7 @@ from .nodes import (
     DatabasePut,
     Email,
     ExecApp,
+    Email,
     GetData,
     GetFullVariable,
     GotoOnExit,
@@ -121,3 +122,5 @@ class Flow(SerializableAttrs):
             return GotoOnExit(**node)
         elif node_type == NodeType.database_get:
             return DatabaseGet(**node)
+        elif node_type == NodeType.email:
+            return Email(**node)

@@ -10,6 +10,7 @@ from .nodes import (
     DatabasePut,
     Email,
     ExecApp,
+    Email,
     GetData,
     GetFullVariable,
     GotoOnExit,
