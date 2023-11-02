@@ -11,7 +11,7 @@ from .middlewares import ASRMiddleware, HTTPMiddleware, TTSMiddleware
 from .models import Flow as FlowModel
 from .nodes import (
     DatabaseGet,
-    Exec_App,
+    ExecApp,
     GetData,
     GetFullVariable,
     Hangup,
@@ -50,8 +50,8 @@ class Flow:
         | SetMusic
         | Verbose
         | SetCallerID
-        | Exec_App
         | DatabaseGet
+        | ExecApp
         | GetFullVariable,
     ):
         self.nodes_by_id[node_data.id] = node_data
@@ -120,7 +120,22 @@ class Flow:
 
     def node(
         self, channel: Channel
-    ) -> Playback | Switch | HTTPRequest | GetData | SetVariable | Record | Hangup | SetMusic | Verbose | SetCallerID | Exec_App | DatabaseGet | GetFullVariable | None:
+    ) -> (
+        Playback
+        | Switch
+        | HTTPRequest
+        | GetData
+        | SetVariable
+        | Record
+        | Hangup
+        | SetMusic
+        | Verbose
+        | SetCallerID
+        | ExecApp
+        | DatabaseGet
+        | GetFullVariable
+        | None
+    ):
         node_data = self.get_node_by_id(node_id=channel.node_id)
 
         if not node_data:
@@ -192,7 +207,7 @@ class Flow:
                 channel=channel,
             )
         elif node_type == NodeType.exec_app:
-            node_initialized = Exec_App(
+            node_initialized = ExecApp(
                 exec_app_content=node_data,
                 default_variables=self.flow_variables,
                 channel=channel,
