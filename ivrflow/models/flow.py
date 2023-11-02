@@ -9,6 +9,8 @@ from mautrix.types import SerializableAttrs
 
 from ..types import NodeType
 from .nodes import (
+    DatabaseDel,
+    DatabasePut,
     Email,
     Exec_App,
     GetData,
@@ -55,6 +57,7 @@ class Flow(SerializableAttrs):
     ) -> (
         Playback
         | Switch
+        | Email
         | HTTPRequest
         | GetData
         | SetVariable
@@ -66,6 +69,7 @@ class Flow(SerializableAttrs):
         | Exec_App
         | GetFullVariable
         | DatabaseDel
+        | DatabasePut
     ):
         try:
             node_type = NodeType(node.get("type"))
@@ -101,3 +105,5 @@ class Flow(SerializableAttrs):
             return DatabaseDel(**node)
         elif node_type == NodeType.email:
             return Email(**node)
+        elif node_type == NodeType.database_put:
+            return DatabasePut(**node)
