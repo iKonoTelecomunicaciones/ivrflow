@@ -5,6 +5,7 @@ from .middlewares import ASRMiddleware, HTTPMiddleware, TTSMiddleware
 from .nodes import (
     Answer,
     Case,
+    DatabaseDel,
     DatabaseGet,
     DatabasePut,
     Email,

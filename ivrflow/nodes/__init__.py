@@ -1,5 +1,6 @@
 from .answer import Answer
 from .base import Base, safe_data_convertion
+from .database_del import DatabaseDel
 from .database_get import DatabaseGet
 from .database_put import DatabasePut
 from .exec_app import ExecApp
