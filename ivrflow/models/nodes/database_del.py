@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import List
 
 from attr import dataclass, ib
 
@@ -18,12 +18,12 @@ class DatabaseDel(FlowObject):
       - id: start
         type: database_del
         entries:
-          "/Exten/Sequence/196"
-          "/Exten/Sequence/197"
+          - "/Exten/Sequence/196"
+          - "/Exten/Sequence/197"
         o_connection: m2
 
     ```
     """
 
-    entries: str = ib(default=str)
+    entries: List[str] = ib(default=List[str])
     o_connection: str = ib(default="")
