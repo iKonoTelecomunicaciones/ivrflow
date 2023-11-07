@@ -17,7 +17,7 @@ log: TraceLogger = logging.getLogger("ivrflow.models.flow_utils")
 @dataclass
 class FlowUtils(SerializableAttrs):
     middlewares: List[HTTPMiddleware] = ib(default=[])
-    email_servers: List[Dict] = ib(default=[])
+    email_servers: List[EmailServer] = ib(default=[])
 
     @classmethod
     def load_flow_utils(cls) -> "FlowUtils":
