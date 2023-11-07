@@ -17,6 +17,7 @@ class NodeType(SerializableEnum):
     verbose = "verbose"
     set_callerid = "set_callerid"
     exec_app = "exec_app"
+    database_get = "database_get"
     get_full_variable = "get_full_variable"
 
 
