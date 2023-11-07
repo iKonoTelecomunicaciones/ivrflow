@@ -7,6 +7,7 @@ from .nodes import (
     Case,
     DatabaseGet,
     DatabasePut,
+    Email,
     ExecApp,
     GetData,
     GetFullVariable,

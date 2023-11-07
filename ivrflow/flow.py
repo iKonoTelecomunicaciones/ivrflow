@@ -13,6 +13,7 @@ from .nodes import (
     Answer,
     DatabaseGet,
     DatabasePut,
+    Email,
     ExecApp,
     GetData,
     GetFullVariable,
@@ -57,6 +58,7 @@ class Flow:
         | DatabaseGet
         | DatabasePut,
         | ExecApp
+        | Email
         | GetFullVariable,
         | GotoOnExit,
     ):
@@ -138,6 +140,7 @@ class Flow:
         | Verbose
         | SetCallerID
         | ExecApp
+        | Email
         | DatabaseGet
         | GetFullVariable
         | GotoOnExit
@@ -231,6 +234,11 @@ class Flow:
             node_initialized = GetFullVariable(
                 get_full_variable_content=node_data,
                 default_variables=self.flow_variables,
+                channel=channel,
+            )
+        elif node_type == NodeType.email:
+            node_initialized = Email(
+                email_content=node_data, default_variables=self.flow_variables,
                 channel=channel,
             )
         elif node_type == NodeType.database_put:

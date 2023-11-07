@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import asyncio
 import sys
 from logging import Logger, getLogger
+from typing import Dict
 
 from aioagi import runner
 from aioagi.app import AGIApplication
@@ -14,8 +17,9 @@ from .config import config
 from .db import init as init_db
 from .db import upgrade_table
 from .db.channel import ChannelState
+from .email_client import EmailClient
 from .flow import Flow
-from .flow_utils import FlowUtils
+from .flow_utils import EmailServer, FlowUtils
 from .http_middleware import end_auth_middleware, start_auth_middleware
 from .models import Flow as FlowModel
 from .nodes import Base
@@ -26,6 +30,7 @@ log: Logger = getLogger("ivrflow.main")
 class IVRFlow(AGIView):
     db: Database
     http_client: ClientSession
+    flow_utils: "FlowUtils" | None = None
 
     async def sip(self):
         await self.algorithm()
@@ -41,7 +46,6 @@ class IVRFlow(AGIView):
         channel = await Channel.get_by_channel_uniqueid(
             channel_uniqueid=self.request.headers["agi_uniqueid"]
         )
-        self.flow_utils = FlowUtils()
         flow_model = FlowModel.load_flow(self.flow_path)
         flow = Flow(flow_data=flow_model, flow_utils=self.flow_utils)
 
@@ -88,6 +92,25 @@ class IVRFlow(AGIView):
         init_db(cls.db)
 
     @classmethod
+    async def start_email_connections(self):
+        log.debug("Starting email clients...")
+        email_servers: Dict[str, EmailServer] = self.flow_utils.get_email_servers()
+        for key, server in email_servers.items():
+            if server.server_id.lower().startswith("sample"):
+                continue
+
+            email_client = EmailClient(
+                server_id=server.server_id,
+                host=server.host,
+                port=server.port,
+                username=server.username,
+                password=server.password,
+                start_tls=server.start_tls,
+            )
+            await email_client.login()
+            email_client._add_to_cache()
+
+    @classmethod
     async def start_db(cls) -> None:
         log.debug("Starting database...")
         try:
@@ -110,6 +133,9 @@ class IVRFlow(AGIView):
         IVRFlow.prepare_db()
         await IVRFlow.start_db()
         IVRFlow.init_http_client()
+        cls.flow_utils = FlowUtils()
+        if cls.flow_utils:
+            asyncio.create_task(cls.start_email_connections())
 
     @classmethod
     async def stop(cls) -> None:

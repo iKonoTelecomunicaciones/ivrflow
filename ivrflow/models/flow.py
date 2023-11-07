@@ -13,6 +13,7 @@ from .nodes import (
     DatabaseGet,
     DatabasePut,
     ExecApp,
+    Email,
     GetData,
     GetFullVariable,
     GotoOnExit,
@@ -67,6 +68,7 @@ class Flow(SerializableAttrs):
         | Verbose
         | SetCallerID
         | ExecApp
+        | Email
         | GetFullVariable
         | DatabaseGet
         | GotoOnExit
@@ -105,6 +107,8 @@ class Flow(SerializableAttrs):
             return DatabaseGet(**node)
         elif node_type == NodeType.get_full_variable:
             return GetFullVariable(**node)
+        elif node_type == NodeType.email:
+            return Email(**node)
         elif node_type == NodeType.database_put:
             return DatabasePut(**node)
         elif node_type == NodeType.answer:
