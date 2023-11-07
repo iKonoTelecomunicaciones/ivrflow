@@ -9,7 +9,8 @@ from mautrix.types import SerializableAttrs
 
 from ..types import NodeType
 from .nodes import (
-    Exec_App,
+    DatabaseGet,
+    ExecApp,
     GetData,
     GetFullVariable,
     GotoOnExit,
@@ -52,7 +53,22 @@ class Flow(SerializableAttrs):
     @classmethod
     def initialize_node_dataclass(
         cls, node: Dict
-    ) -> Playback | Switch | HTTPRequest | GetData | SetVariable | Record | Hangup | SetMusic | Verbose | SetCallerID | Exec_App | GetFullVariable | GotoOnExit:
+    ) -> (
+        Playback
+        | Switch
+        | HTTPRequest
+        | GetData
+        | SetVariable
+        | Record
+        | Hangup
+        | SetMusic
+        | Verbose
+        | SetCallerID
+        | ExecApp
+        | GetFullVariable
+        | DatabaseGet
+        | GotoOnExit
+    ):
         try:
             node_type = NodeType(node.get("type"))
         except ValueError:
@@ -80,7 +96,9 @@ class Flow(SerializableAttrs):
         elif node_type == NodeType.set_callerid:
             return SetCallerID(**node)
         elif node_type == NodeType.exec_app:
-            return Exec_App(**node)
+            return ExecApp(**node)
+        elif node_type == NodeType.database_get:
+            return DatabaseGet(**node)
         elif node_type == NodeType.get_full_variable:
             return GetFullVariable(**node)
         elif node_type == NodeType.goto_on_exit:
