@@ -14,6 +14,7 @@ from .nodes import (
     ExecApp,
     GetData,
     GetFullVariable,
+    GotoOnExit,
     Hangup,
     HTTPRequest,
     Playback,
@@ -53,6 +54,7 @@ class Flow:
         | DatabaseGet
         | ExecApp
         | GetFullVariable,
+        | GotoOnExit,
     ):
         self.nodes_by_id[node_data.id] = node_data
 
@@ -134,8 +136,10 @@ class Flow:
         | ExecApp
         | DatabaseGet
         | GetFullVariable
+        | GotoOnExit
         | None
     ):
+
         node_data = self.get_node_by_id(node_id=channel.node_id)
 
         if not node_data:
@@ -221,6 +225,12 @@ class Flow:
         elif node_type == NodeType.get_full_variable:
             node_initialized = GetFullVariable(
                 get_full_variable_content=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
+            )
+        elif node_type == NodeType.goto_on_exit:
+            node_initialized = GotoOnExit(
+                goto_on_exit_content=node_data,
                 default_variables=self.flow_variables,
                 channel=channel,
             )

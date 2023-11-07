@@ -8,6 +8,7 @@ from .nodes import (
     ExecApp,
     GetData,
     GetFullVariable,
+    GotoOnExit,
     Hangup,
     HTTPRequest,
     Playback,
