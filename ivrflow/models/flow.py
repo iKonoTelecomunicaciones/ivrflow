@@ -11,6 +11,7 @@ from ..types import NodeType
 from .nodes import (
     Answer,
     DatabaseGet,
+    DatabasePut,
     ExecApp,
     GetData,
     GetFullVariable,
@@ -70,6 +71,7 @@ class Flow(SerializableAttrs):
         | DatabaseGet
         | GotoOnExit
         | Answer
+        | DatabasePut
     ):
         try:
             node_type = NodeType(node.get("type"))
@@ -103,6 +105,8 @@ class Flow(SerializableAttrs):
             return DatabaseGet(**node)
         elif node_type == NodeType.get_full_variable:
             return GetFullVariable(**node)
+        elif node_type == NodeType.database_put:
+            return DatabasePut(**node)
         elif node_type == NodeType.answer:
             return Answer(**node)
         elif node_type == NodeType.goto_on_exit:
