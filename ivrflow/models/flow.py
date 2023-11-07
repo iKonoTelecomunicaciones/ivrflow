@@ -9,6 +9,7 @@ from mautrix.types import SerializableAttrs
 
 from ..types import NodeType
 from .nodes import (
+    Answer,
     DatabaseGet,
     ExecApp,
     GetData,
@@ -68,6 +69,7 @@ class Flow(SerializableAttrs):
         | GetFullVariable
         | DatabaseGet
         | GotoOnExit
+        | Answer
     ):
         try:
             node_type = NodeType(node.get("type"))
@@ -101,5 +103,7 @@ class Flow(SerializableAttrs):
             return DatabaseGet(**node)
         elif node_type == NodeType.get_full_variable:
             return GetFullVariable(**node)
+        elif node_type == NodeType.answer:
+            return Answer(**node)
         elif node_type == NodeType.goto_on_exit:
             return GotoOnExit(**node)

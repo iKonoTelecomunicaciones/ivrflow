@@ -10,6 +10,7 @@ from .flow_utils import FlowUtils
 from .middlewares import ASRMiddleware, HTTPMiddleware, TTSMiddleware
 from .models import Flow as FlowModel
 from .nodes import (
+    Answer,
     DatabaseGet,
     ExecApp,
     GetData,
@@ -51,6 +52,7 @@ class Flow:
         | SetMusic
         | Verbose
         | SetCallerID
+        | Answer,
         | DatabaseGet
         | ExecApp
         | GetFullVariable,
@@ -137,9 +139,9 @@ class Flow:
         | DatabaseGet
         | GetFullVariable
         | GotoOnExit
+        | Answer
         | None
     ):
-
         node_data = self.get_node_by_id(node_id=channel.node_id)
 
         if not node_data:
@@ -225,6 +227,12 @@ class Flow:
         elif node_type == NodeType.get_full_variable:
             node_initialized = GetFullVariable(
                 get_full_variable_content=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
+            )
+        elif node_type == NodeType.answer:
+            node_initialized = Answer(
+                answer_content=node_data,
                 default_variables=self.flow_variables,
                 channel=channel,
             )
