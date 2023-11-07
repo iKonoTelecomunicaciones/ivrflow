@@ -18,7 +18,11 @@ class NodeType(SerializableEnum):
     set_callerid = "set_callerid"
     email = "email"
     exec_app = "exec_app"
+    database_get = "database_get"
     get_full_variable = "get_full_variable"
+    database_put = "database_put"
+    answer = "answer"
+    goto_on_exit = "goto_on_exit"
 
 
 class MiddlewareType(SerializableEnum):

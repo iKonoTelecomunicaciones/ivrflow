@@ -4,9 +4,9 @@ from ..flow_object import FlowObject
 
 
 @dataclass
-class Exec_App(FlowObject):
+class ExecApp(FlowObject):
     """
-    ## Exec_App
+    ## ExecApp
     Logs a message to the asterisk verbose log.
     content:
     ```

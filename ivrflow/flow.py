@@ -10,10 +10,14 @@ from .flow_utils import FlowUtils
 from .middlewares import ASRMiddleware, HTTPMiddleware, TTSMiddleware
 from .models import Flow as FlowModel
 from .nodes import (
+    Answer,
+    DatabaseGet,
+    DatabasePut,
     Email,
-    Exec_App,
+    ExecApp,
     GetData,
     GetFullVariable,
+    GotoOnExit,
     Hangup,
     HTTPRequest,
     Playback,
@@ -50,9 +54,13 @@ class Flow:
         | SetMusic
         | Verbose
         | SetCallerID
+        | Answer,
+        | DatabaseGet
+        | DatabasePut,
+        | ExecApp
         | Email
-        | Exec_App
         | GetFullVariable,
+        | GotoOnExit,
     ):
         self.nodes_by_id[node_data.id] = node_data
 
@@ -120,7 +128,26 @@ class Flow:
 
     def node(
         self, channel: Channel
-    ) -> Playback | Switch | HTTPRequest | GetData | SetVariable | Record | Hangup | SetMusic | Verbose | SetCallerID | Exec_App | GetFullVariable | None:
+    ) -> (
+        Playback
+        | Switch
+        | HTTPRequest
+        | GetData
+        | SetVariable
+        | Record
+        | Hangup
+        | SetMusic
+        | Verbose
+        | SetCallerID
+        | ExecApp
+        | Email
+        | DatabaseGet
+        | GetFullVariable
+        | GotoOnExit
+        | Answer
+        | DatabasePut
+        | None
+    ):
         node_data = self.get_node_by_id(node_id=channel.node_id)
 
         if not node_data:
@@ -192,8 +219,14 @@ class Flow:
                 channel=channel,
             )
         elif node_type == NodeType.exec_app:
-            node_initialized = Exec_App(
+            node_initialized = ExecApp(
                 exec_app_content=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
+            )
+        elif node_type == NodeType.database_get:
+            node_initialized = DatabaseGet(
+                database_get_content=node_data,
                 default_variables=self.flow_variables,
                 channel=channel,
             )
@@ -205,7 +238,26 @@ class Flow:
             )
         elif node_type == NodeType.email:
             node_initialized = Email(
-                email_content=node_data, default_variables=self.flow_variables, channel=channel
+                email_content=node_data, default_variables=self.flow_variables,
+                channel=channel,
+            )
+        elif node_type == NodeType.database_put:
+            node_initialized = DatabasePut(
+                database_put_content=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
+            )
+        elif node_type == NodeType.answer:
+            node_initialized = Answer(
+                answer_content=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
+            )
+        elif node_type == NodeType.goto_on_exit:
+            node_initialized = GotoOnExit(
+                goto_on_exit_content=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
             )
         else:
             return
