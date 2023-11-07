@@ -9,13 +9,14 @@ class Hangup(FlowObject):
     ## Hangup a channel.
 
     Hangs up the specified channel.
+    If no channel name is given, hangs up the current channel.
 
     content:
 
     ```
     - id: p1
       type: hangup
-      chan: SIP/101-123456789
+      chan: SIP/XXXXXX
     ```
     """
 

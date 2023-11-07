@@ -9,10 +9,15 @@ from mautrix.types import SerializableAttrs
 
 from ..types import NodeType
 from .nodes import (
+    Answer,
     DatabaseDel,
-    Exec_App,
+    DatabaseGet,
+    DatabasePut,
+    ExecApp,
+    Email,
     GetData,
     GetFullVariable,
+    GotoOnExit,
     Hangup,
     HTTPRequest,
     Playback,
@@ -52,7 +57,26 @@ class Flow(SerializableAttrs):
     @classmethod
     def initialize_node_dataclass(
         cls, node: Dict
-    ) -> Playback | Switch | HTTPRequest | GetData | SetVariable | Record | Hangup | SetMusic | Verbose | SetCallerID | Exec_App | GetFullVariable | DatabaseDel:
+    ) -> (
+        Playback
+        | Switch
+        | HTTPRequest
+        | GetData
+        | SetVariable
+        | Record
+        | Hangup
+        | SetMusic
+        | Verbose
+        | SetCallerID
+        | ExecApp
+        | Email
+        | GetFullVariable
+        | DatabaseGet
+        | GotoOnExit
+        | Answer
+        | DatabasePut
+        | DatabaseDel
+    ):
         try:
             node_type = NodeType(node.get("type"))
         except ValueError:
@@ -80,8 +104,18 @@ class Flow(SerializableAttrs):
         elif node_type == NodeType.set_callerid:
             return SetCallerID(**node)
         elif node_type == NodeType.exec_app:
-            return Exec_App(**node)
+            return ExecApp(**node)
+        elif node_type == NodeType.database_get:
+            return DatabaseGet(**node)
         elif node_type == NodeType.get_full_variable:
             return GetFullVariable(**node)
         elif node_type == NodeType.database_del:
             return DatabaseDel(**node)
+        elif node_type == NodeType.email:
+            return Email(**node)
+        elif node_type == NodeType.database_put:
+            return DatabasePut(**node)
+        elif node_type == NodeType.answer:
+            return Answer(**node)
+        elif node_type == NodeType.goto_on_exit:
+            return GotoOnExit(**node)
