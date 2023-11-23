@@ -48,11 +48,12 @@ class Playback(Base):
     async def run(self) -> None:
         self.log.info(f"Channel {self.channel.channel_uniqueid} enters message node {self.id}")
 
+        if self.middleware:
+            middleware_extended_data = self.render_data(
+                self.content.middleware.get(self.middleware.id)
+            )
+            await self.middleware.run(middleware_extended_data)
         sound_path = self.file
-        if self.middleware and self.text:
-            await self.channel.set_variable("tts_text", self.text)
-            await self.middleware.run()
-            sound_path = self.middleware.sound_path
 
         await self.asterisk_conn.agi.stream_file(
             filename=sound_path, escape_digits=self.escape_digits, sample_offset=self.sample_offset

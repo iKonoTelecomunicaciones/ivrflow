@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 class GetData(Switch):
-    middleware: Union["TTSMiddleware", "ASRMiddleware"] = None
+    middlewares: Union["TTSMiddleware", "ASRMiddleware"] = None
 
     def __init__(self, get_data_content: GetDataModel, channel: Channel, default_variables: Dict):
         super().__init__(get_data_content, channel, default_variables)
@@ -35,24 +35,29 @@ class GetData(Switch):
     async def run(self):
         self.log.info(f"Channel {self.channel.channel_uniqueid} enters input node {self.id}")
 
-        middleware_type = MiddlewareType(self.middleware.type) if self.middleware else None
+        middlewares_sorted = {
+            MiddlewareType(middleware.type): middleware for middleware in self.middlewares
+        }
 
-        sound_path = self.file
-        if middleware_type == MiddlewareType.tts and self.text:
-            await self.channel.set_variable("tts_text", self.text)
-            await self.middleware.run()
-            sound_path = self.middleware.sound_path
+        tts_middleware: TTSMiddleware = middlewares_sorted.get(MiddlewareType.tts)
+        if tts_middleware:
+            middleware_extended_data = self.render_data(
+                self.content.middlewares.get(tts_middleware.id)
+            )
+            await tts_middleware.run(extended_data=middleware_extended_data)
 
-        if middleware_type == MiddlewareType.asr:
-            result = await self.middleware.run(sound_path)
+        asr_middleware: ASRMiddleware = middlewares_sorted.get(MiddlewareType.asr)
+        if asr_middleware:
+            middleware_extended_data = self.render_data(
+                self.content.middlewares.get(asr_middleware.id)
+            )
+            await asr_middleware.run(middleware_extended_data)
         else:
             variable = await self.asterisk_conn.agi.get_data(
-                filename=sound_path,
+                filename=self.file,
                 timeout=self.timeout,
                 max_digits=self.max_digits,
             )
-            result = variable.result
-
-        await self.channel.set_variable(self.content.variable, result)
+            await self.channel.set_variable(self.content.dtmf_input, variable.result)
 
         await super().run()

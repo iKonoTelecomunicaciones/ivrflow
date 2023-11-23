@@ -60,22 +60,24 @@ class TTSMiddleware(Base):
     def json(self) -> Dict:
         return self.render_data(self.content.json)
 
-    async def run(self) -> Tuple[int, str]:
+    async def run(self, extended_data: Dict) -> Tuple[int, str]:
         """Syntehtize the text and return the status code and the file path."""
 
         request_body = {}
 
         if self.query_params:
-            request_body["params"] = self.query_params
+            request_body["params"] = {
+                param: extended_data.get(param) for param in self.query_params
+            }
 
         if self.headers:
-            request_body["headers"] = self.headers
+            request_body["headers"] = {param: extended_data.get(param) for param in self.headers}
 
         if self.data:
-            request_body["data"] = self.data
+            request_body["data"] = {param: extended_data.get(param) for param in self.data}
 
         if self.json:
-            request_body["json"] = self.json
+            request_body["json"] = {param: extended_data.get(param) for param in self.json}
 
         try:
             timeout = ClientTimeout(total=self.config["ivrflow.timeouts.middlewares"])
@@ -122,8 +124,7 @@ class TTSMiddleware(Base):
                         pass
 
                     break
-
         if variables:
-            await self.channel.set_variables(variables=variables)
+            await self.channel.set_variable(self.id, variables)
 
         return response.status, await response.text()
