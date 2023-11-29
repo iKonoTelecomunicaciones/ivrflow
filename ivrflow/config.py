@@ -10,6 +10,7 @@ class Config(BaseFileConfig):
         # Ivrflow
         copy("ivrflow.database")
         copy_dict("ivrflow.database_opts")
+        copy_dict("ivrflow.timeouts")
 
         # Logging
         copy_dict("logging")

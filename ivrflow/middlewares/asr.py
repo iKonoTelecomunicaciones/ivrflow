@@ -67,10 +67,7 @@ class ASRMiddleware(Base):
 
     async def run(self, extended_data: Dict):
         record_suffix = sqids.encode([int(time())])
-        record_filename, _ = (
-            f"{self.channel.channel_uniqueid}_{record_suffix}",
-            self.content.record_format,
-        )
+        record_filename = f"{self.channel.channel_uniqueid}_{record_suffix}"
 
         if extended_data.get("prompt_file"):
             await self.asterisk_conn.agi.stream_file(extended_data.get("prompt_file"))
