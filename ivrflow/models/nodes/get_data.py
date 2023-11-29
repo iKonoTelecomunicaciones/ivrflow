@@ -21,10 +21,16 @@ class GetData(Switch):
         file: "vm-exten"
         # This is the sound file that will be played to the user while the ASR is executed
         progress_sound: "custom/progress"
-        middleware: m1
+        middlewares:
+            tts:
+                text: "Please enter your account number"
+            asr:
+                prompt_file: "{{ tts_azure.file }}"
+                progress_sound: "custom/progress"
+                record_path_variable: "asr_file_path"
         timeout: 5
         max_digits: 1
-        variable: opt
+        dtmf_input: opt
         validation: '{{ opt }}'
         cases:
         - id: 1
@@ -36,12 +42,10 @@ class GetData(Switch):
     """
 
     file: str = ib(factory=str)
-    text: str = ib(default=None)
-    progress_sound: str = ib(default=None)
-    middleware: str = ib(default=None)
+    middlewares: Dict = ib(default=None)
     timeout: int = ib(factory=int)
     max_digits: int = ib(factory=int)
-    variable: str = ib(factory=str)
+    dtmf_input: str = ib(factory=str)
 
     @classmethod
     def from_dict(cls, node: Dict) -> "GetData":
@@ -49,12 +53,10 @@ class GetData(Switch):
             id=node.get("id"),
             type=node.get("type"),
             file=node.get("file"),
-            progress_sound=node.get("progress_sound"),
-            text=node.get("text"),
-            middleware=node.get("middleware"),
+            middlewares=node.get("middlewares"),
             timeout=node.get("timeout", 5000),
             max_digits=node.get("max_digits", 255),
-            variable=node.get("variable"),
+            dtmf_input=node.get("dtmf_input"),
             validation=node.get("validation"),
             cases=[Case(**case) for case in node.get("cases", [])],
         )

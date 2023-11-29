@@ -1,3 +1,5 @@
+from typing import Dict
+
 from attr import dataclass, ib
 
 from ..flow_object import FlowObject
@@ -26,7 +28,7 @@ class Playback(FlowObject):
 
     file: str = ib(default="")
     text: str = ib(default=None)
-    middleware: str = ib(default=None)
+    middleware: Dict = ib(default=None)
     escape_digits: str = ib(default="")
     sample_offset: int = ib(default=0)
     o_connection: str = ib(default="")

@@ -55,13 +55,13 @@ class Flow:
         | SetMusic
         | Verbose
         | SetCallerID
-        | Answer,
-        | DatabaseDel,
+        | Answer
+        | DatabaseDel
         | DatabaseGet
-        | DatabasePut,
+        | DatabasePut
         | ExecApp
         | Email
-        | GetFullVariable,
+        | GetFullVariable
         | GotoOnExit,
     ):
         self.nodes_by_id[node_data.id] = node_data
@@ -167,7 +167,8 @@ class Flow:
                 playback_content=node_data, default_variables=self.flow_variables, channel=channel
             )
             if node_data.middleware:
-                middleware = self.middleware(node_data.middleware, channel=channel)
+                middleware_id = list(node_data.middleware.keys())[0]
+                middleware = self.middleware(middleware_id, channel=channel)
                 node_initialized.middleware = middleware
         elif node_type == NodeType.switch:
             node_initialized = Switch(
@@ -186,9 +187,11 @@ class Flow:
             node_initialized = GetData(
                 get_data_content=node_data, channel=channel, default_variables=self.flow_variables
             )
-            if node_data.middleware:
-                middleware = self.middleware(node_data.middleware, channel=channel)
-                node_initialized.middleware = middleware
+            if node_data.middlewares:
+                middlewares = []
+                for key, _ in node_data.middlewares.items():
+                    middlewares.append(self.middleware(key, channel=channel))
+                node_initialized.middlewares = middlewares
         elif node_type == NodeType.set_variable:
             node_initialized = SetVariable(
                 set_variable_content=node_data,
@@ -248,7 +251,8 @@ class Flow:
             )
         elif node_type == NodeType.email:
             node_initialized = Email(
-                email_content=node_data, default_variables=self.flow_variables,
+                email_content=node_data,
+                default_variables=self.flow_variables,
                 channel=channel,
             )
         elif node_type == NodeType.database_put:
