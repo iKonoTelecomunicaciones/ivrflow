@@ -86,7 +86,7 @@ class Switch(Base):
             # Load variables defined in the case into the channel
             await self.load_variables(case_result)
 
-            case_o_connection = case_result.get("o_connection")
+            case_o_connection = self.render_data(case_result.get("o_connection"))
 
             self.log.debug(
                 f"The case [{case_o_connection}] has been obtained in the input node [{self.id}]"
