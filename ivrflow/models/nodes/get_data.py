@@ -17,7 +17,6 @@ class GetData(Switch):
     ```
       - id: start
         type: get_data
-        text: "Please enter your account number"
         file: "vm-exten"
         # This is the sound file that will be played to the user while the ASR is executed
         progress_sound: "custom/progress"
