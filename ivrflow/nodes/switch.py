@@ -71,7 +71,12 @@ class Switch(Base):
             self.log.warning(f"An exception has occurred in the pipeline [{self.id} ]:: {e}")
             result = "except"
 
-        return await self.get_case_by_id(result)
+        o_connection = await self.get_case_by_id(result)
+
+        if o_connection is None or o_connection in ["finish", ""]:
+            o_connection = self.get_o_connection()
+
+        return o_connection
 
     async def run(self) -> str:
         await self.channel.update_ivr(await self._run())

@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 class GetData(Switch):
-    middlewares: Union["TTSMiddleware", "ASRMiddleware"] = None
+    middlewares: Union["TTSMiddleware", "ASRMiddleware"] = []
 
     def __init__(self, get_data_content: GetDataModel, channel: Channel, default_variables: Dict):
         super().__init__(get_data_content, channel, default_variables)

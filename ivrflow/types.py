@@ -24,6 +24,7 @@ class NodeType(SerializableEnum):
     database_put = "database_put"
     answer = "answer"
     goto_on_exit = "goto_on_exit"
+    subroutine = "subroutine"
 
 
 class MiddlewareType(SerializableEnum):

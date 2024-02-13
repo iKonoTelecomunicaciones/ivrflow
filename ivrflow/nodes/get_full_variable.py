@@ -22,7 +22,7 @@ class GetFullVariable(Base):
 
     @property
     def o_connection(self) -> str:
-        return self.render_data(self.content.get("o_connection", ""))
+        return self.get_o_connection()
 
     async def _update_node(self):
         await self.channel.update_ivr(
