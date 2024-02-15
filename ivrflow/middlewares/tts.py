@@ -1,6 +1,6 @@
 from typing import Dict, Tuple
 
-from aiohttp import ClientTimeout, ContentTypeError
+from aiohttp import ClientTimeout, ContentTypeError, FormData
 from mautrix.util.config import RecursiveDict
 from ruamel.yaml.comments import CommentedMap
 
@@ -33,10 +33,6 @@ class TTSMiddleware(Base):
         return self.render_data(self.content.variables)
 
     @property
-    def sound_path(self) -> str:
-        return self.render_data(self.content.sound_path)
-
-    @property
     def cookies(self) -> Dict:
         return self.render_data(self.content.cookies)
 
@@ -49,35 +45,22 @@ class TTSMiddleware(Base):
         return self.render_data(self.content.basic_auth)
 
     @property
-    def query_params(self) -> Dict:
-        return self.render_data(self.content.query_params)
-
-    @property
     def data(self) -> Dict:
         return self.render_data(self.content.data)
-
-    @property
-    def json(self) -> Dict:
-        return self.render_data(self.content.json)
 
     async def run(self, extended_data: Dict) -> Tuple[int, str]:
         """Syntehtize the text and return the status code and the file path."""
 
         request_body = {}
 
-        if self.query_params:
-            request_body["params"] = {
-                param: extended_data.get(param) for param in self.query_params
-            }
-
         if self.headers:
-            request_body["headers"] = {param: extended_data.get(param) for param in self.headers}
+            request_body["headers"] = self.headers
 
-        if self.data:
-            request_body["data"] = {param: extended_data.get(param) for param in self.data}
+        data = FormData()
+        for param in self.data:
+            data.add_field(name=param, value=extended_data.get(param))
 
-        if self.json:
-            request_body["json"] = {param: extended_data.get(param) for param in self.json}
+        request_body["data"] = data
 
         try:
             timeout = ClientTimeout(total=self.config["ivrflow.timeouts.middlewares"])
