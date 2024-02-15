@@ -74,7 +74,6 @@ class Switch(Base):
             self.log.debug(f"Validation value is not found, validate case by case in [{self.id}]")
             return await self.validate_cases()
 
-
         o_connection = await self.get_case_by_id(result)
 
         if o_connection is None or o_connection in ["finish", ""]:
@@ -109,7 +108,8 @@ class Switch(Base):
                 continue
 
             # Load variables defined in the case into the room
-            await self.load_variables(switch_case.variables)
+            if switch_case.variables:
+                await self.load_variables(switch_case.variables)
 
             # Get the o_connection of the case
             case_o_connection = self.render_data(switch_case.o_connection)
@@ -146,7 +146,7 @@ class Switch(Base):
             cases = await self.load_cases()
             case_result: Dict = cases[id]
 
-            if not case_result.get("variables"):
+            if case_result.get("variables"):
                 # Load variables defined in the case into the channel
                 await self.load_variables(case_result.get("variables"))
 
