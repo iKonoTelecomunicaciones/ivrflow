@@ -123,15 +123,17 @@ class Switch(Base):
             ):
                 del self.VALIDATION_ATTEMPTS_BY_CHANNEL[self.channel.channel_uniqueid]
 
-            return case_o_connection
-
         if not case_o_connection:
             default_case, o_connection = await self.manage_case_exceptions()
             self.log.debug(
-                f"Case validations in [{self.id}] do not match; "
+                f"Case validations in [{self.id}] do not match with [{o_connection}] "
                 f"the [{default_case}] case will be sought"
             )
-            return self.render_data(o_connection)
+
+        if case_o_connection is None or case_o_connection in ["finish", ""]:
+            case_o_connection = await self.get_o_connection()
+
+        return case_o_connection
 
     async def run(self) -> str:
         await self.channel.update_ivr(await self._run())
@@ -159,11 +161,15 @@ class Switch(Base):
             ):
                 del self.VALIDATION_ATTEMPTS_BY_CHANNEL[self.channel.channel_uniqueid]
 
-            return case_o_connection
         except KeyError:
             default_case, o_connection = await self.manage_case_exceptions()
             self.log.debug(f"Case [{id}] not found; the [{default_case} case] will be sought")
             return o_connection
+
+        if case_o_connection is None or case_o_connection in ["finish", ""]:
+            case_o_connection = await self.get_o_connection()
+
+        return case_o_connection
 
     async def load_variables(self, variables: Dict) -> None:
         """This function loads variables defined in switch cases into the channel.
@@ -226,5 +232,6 @@ class Switch(Base):
 
         # Load variables defined in the case into the channel
         await self.load_variables(default_case.get("variables", {}))
+        default_o_connection = self.render_data(default_case.get("o_connection", "start"))
 
-        return case_to_be_used, default_case.get("o_connection", "start")
+        return case_to_be_used, default_o_connection
