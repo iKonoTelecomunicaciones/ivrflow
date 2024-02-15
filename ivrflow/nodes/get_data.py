@@ -21,10 +21,6 @@ class GetData(Switch):
         return self.render_data(data=self.content.file)
 
     @property
-    def text(self) -> str:
-        return self.render_data(data=self.content.text)
-
-    @property
     def timeout(self) -> int:
         return self.render_data(data=self.content.timeout)
 
