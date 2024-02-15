@@ -74,6 +74,7 @@ class Switch(Base):
             self.log.debug(f"Validation value is not found, validate case by case in [{self.id}]")
             return await self.validate_cases()
 
+
         o_connection = await self.get_case_by_id(result)
 
         if o_connection is None or o_connection in ["finish", ""]:
