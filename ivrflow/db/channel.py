@@ -70,7 +70,7 @@ class Channel:
 
     async def update(self) -> None:
         q = (
-            "UPDATE channel SET variables = $2, node_id = $3, state = $4, stack=$5"
+            "UPDATE channel SET variables = $2, node_id = $3, state = $4, stack=$5 "
             "WHERE channel_uniqueid = $1"
         )
         await self.db.execute(q, *self.values)
