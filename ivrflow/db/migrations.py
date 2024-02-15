@@ -19,3 +19,8 @@ async def upgrade_v1(conn: Connection) -> None:
     await conn.execute(
         "ALTER TABLE channel ADD CONSTRAINT idx_unique_channel_uniqueid UNIQUE (channel_uniqueid)"
     )
+
+
+@upgrade_table.register(description="Add stack field to channel table")
+async def upgrade_v3(conn: Connection) -> None:
+    await conn.execute("ALTER TABLE channel ADD COLUMN stack JSONB NOT NULL DEFAULT '{}'::jsonb")

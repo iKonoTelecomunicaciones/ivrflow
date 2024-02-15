@@ -33,7 +33,7 @@ class Playback(Base):
 
     @property
     def o_connection(self) -> str:
-        return self.render_data(self.content.get("o_connection", ""))
+        return self.get_o_connection()
 
     @property
     def sample_offset(self) -> int:

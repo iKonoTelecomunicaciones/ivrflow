@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import sys
 from logging import Logger, getLogger
-from typing import Dict
+from typing import Dict, Tuple
 
 from aioagi import runner
 from aioagi.app import AGIApplication
@@ -41,7 +41,7 @@ class IVRFlow(AGIView):
     async def dahdi(self):
         await self.algorithm()
 
-    async def post_init(self) -> (Flow, Channel):
+    async def post_init(self) -> Tuple[Flow, Channel]:
         Base.init_cls(config=config, asterisk_conn=self.request, session=self.http_client)
         channel = await Channel.get_by_channel_uniqueid(
             channel_uniqueid=self.request.headers["agi_uniqueid"]
@@ -60,7 +60,7 @@ class IVRFlow(AGIView):
         node = flow.node(channel=channel)
 
         if node is None:
-            log.debug(f"Channel {channel.channel_uniqueid} does not have a node")
+            log.debug(f"Channel {channel.channel_uniqueid} does not have a node [{node.id}]")
             await channel.update_ivr(node_id="start")
             return
 

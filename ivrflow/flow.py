@@ -26,6 +26,7 @@ from .nodes import (
     SetCallerID,
     SetMusic,
     SetVariable,
+    Subroutine,
     Switch,
     Verbose,
 )
@@ -45,24 +46,27 @@ class Flow:
 
     def _add_node_to_cache(
         self,
-        node_data: Playback
-        | Switch
-        | HTTPRequest
-        | GetData
-        | SetVariable
-        | Record
-        | Hangup
-        | SetMusic
-        | Verbose
-        | SetCallerID
-        | Answer
-        | DatabaseDel
-        | DatabaseGet
-        | DatabasePut
-        | ExecApp
-        | Email
-        | GetFullVariable
-        | GotoOnExit,
+        node_data: (
+            Playback
+            | Switch
+            | HTTPRequest
+            | GetData
+            | SetVariable
+            | Record
+            | Hangup
+            | SetMusic
+            | Verbose
+            | SetCallerID
+            | Answer
+            | DatabaseDel
+            | DatabaseGet
+            | DatabasePut
+            | ExecApp
+            | Email
+            | GetFullVariable
+            | GotoOnExit
+            | Subroutine
+        ),
     ):
         self.nodes_by_id[node_data.id] = node_data
 
@@ -270,6 +274,12 @@ class Flow:
         elif node_type == NodeType.goto_on_exit:
             node_initialized = GotoOnExit(
                 goto_on_exit_content=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
+            )
+        elif node_type == NodeType.subroutine:
+            node_initialized = Subroutine(
+                subroutine_node_data=node_data,
                 default_variables=self.flow_variables,
                 channel=channel,
             )
