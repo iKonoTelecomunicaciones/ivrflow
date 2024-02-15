@@ -25,6 +25,7 @@ class Channel(DBChannel):
         state: ChannelState = None,
         id: int = None,
         variables: str = "{}",
+        stack: str = "{}",
     ) -> None:
         self._variables: Dict = json.loads(variables)
         super().__init__(
@@ -33,6 +34,7 @@ class Channel(DBChannel):
             node_id=node_id,
             state=state,
             variables=f"{variables}",
+            stack=stack,
         )
         self.log = self.log.getChild(self.channel_uniqueid)
 

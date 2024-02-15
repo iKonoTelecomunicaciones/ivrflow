@@ -13,8 +13,8 @@ from .nodes import (
     DatabaseDel,
     DatabaseGet,
     DatabasePut,
-    ExecApp,
     Email,
+    ExecApp,
     GetData,
     GetFullVariable,
     GotoOnExit,
@@ -25,6 +25,7 @@ from .nodes import (
     SetCallerID,
     SetMusic,
     SetVariable,
+    Subroutine,
     Switch,
     Verbose,
 )
@@ -119,3 +120,5 @@ class Flow(SerializableAttrs):
             return Answer(**node)
         elif node_type == NodeType.goto_on_exit:
             return GotoOnExit(**node)
+        elif node_type == NodeType.subroutine:
+            return Subroutine(**node)

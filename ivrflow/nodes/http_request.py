@@ -178,6 +178,9 @@ class HTTPRequest(Switch):
         if self.cases:
             o_connection = await self.get_case_by_id(id=response.status)
 
+        if o_connection is None or o_connection in ["finish", ""]:
+            o_connection = self.get_o_connection()
+
         if o_connection:
             await self.channel.update_ivr(
                 node_id=o_connection, state=ChannelState.END if not self.cases else None
@@ -221,12 +224,14 @@ class HTTPRequest(Switch):
                 {
                     self.channel.channel_uniqueid: {
                         "last_http_node": self.id,
-                        "attempts_count": self.HTTP_ATTEMPTS.get(
-                            self.channel.channel_uniqueid, {}
-                        ).get("attempts_count")
-                        + 1
-                        if self.HTTP_ATTEMPTS.get(self.channel.channel_uniqueid)
-                        else 1,
+                        "attempts_count": (
+                            self.HTTP_ATTEMPTS.get(self.channel.channel_uniqueid, {}).get(
+                                "attempts_count"
+                            )
+                            + 1
+                            if self.HTTP_ATTEMPTS.get(self.channel.channel_uniqueid)
+                            else 1
+                        ),
                     }
                 }
             )
