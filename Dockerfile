@@ -1,5 +1,5 @@
 # Building stage (host OS)
-FROM python:3.8 as base
+FROM python:3.8 AS base
 
 # set the working directory in the container
 WORKDIR /app
