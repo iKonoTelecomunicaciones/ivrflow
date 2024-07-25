@@ -163,9 +163,7 @@ class HTTPRequest(Switch):
                         continue
 
                     try:
-                        variables[variable] = (
-                            self.render_data(data_match) if len(data_match) > 1 else data_match[0]
-                        )
+                        variables[variable] = data_match if len(data_match) > 1 else data_match[0]
                     except KeyError:
                         pass
         elif isinstance(response_data, str):
