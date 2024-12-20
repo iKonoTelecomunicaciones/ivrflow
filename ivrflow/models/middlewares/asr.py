@@ -19,7 +19,6 @@ class ASRMiddleware(FlowObject):
       type: asr
       method: GET
       url: "http://localhost:5000/asr"
-      text: "{{ content }}"
       record_format: "wav"
       scape_digits: "#"
       timeout: 10000
