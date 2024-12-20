@@ -2,9 +2,7 @@ from asyncio import gather
 from time import time
 from typing import Dict, Tuple
 
-from aiohttp import ClientTimeout, ContentTypeError
-from mautrix.util.config import RecursiveDict
-from ruamel.yaml.comments import CommentedMap
+from aiohttp import ClientTimeout, ContentTypeError, FormData
 from sqids import Sqids
 
 from ..channel import Channel
@@ -32,14 +30,6 @@ class ASRMiddleware(Base):
     @property
     def url(self) -> str:
         return self.render_data(self.content.url)
-
-    @property
-    def middleware_variables(self) -> Dict:
-        return self.render_data(self.content.variables)
-
-    @property
-    def text(self) -> str:
-        return self.render_data(self.content.text)
 
     @property
     def cookies(self) -> Dict:
@@ -80,7 +70,8 @@ class ASRMiddleware(Base):
             silence=self.content.silence,
         )
 
-        await self.channel.set_variable("record_path_variable", record_filename)
+        file_name_recorded = f"{record_filename}.{self.content.record_format}"
+        await self.channel.set_variable("record_path_variable", file_name_recorded)
 
         await self.channel.set_variable("asr_file_path", record_filename)
         if extended_data.get("progress_sound"):
@@ -105,7 +96,10 @@ class ASRMiddleware(Base):
             request_body["headers"] = self.headers
 
         if self.data:
-            request_body["data"] = self.data
+            form_data = FormData()
+            for key, value in self.data.items():
+                form_data.add_field(name=key, value=value)
+            request_body["data"] = form_data
 
         if self.json:
             request_body["json"] = self.json
