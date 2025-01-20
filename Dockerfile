@@ -1,5 +1,5 @@
 # Building stage (host OS)
-FROM python:3.8 AS base
+FROM python:3.12.3 AS base
 
 # set the working directory in the container
 WORKDIR /app
@@ -32,7 +32,7 @@ COPY . ./
 ENTRYPOINT watchmedo auto-restart --recursive --pattern="*.py" --directory="." -- python -m ivrflow
 
 
-FROM python:3.8-slim AS runtime
+FROM python:3.12.3-slim AS runtime
 
 # set the working directory in the container
 WORKDIR /app
