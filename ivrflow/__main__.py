@@ -97,7 +97,8 @@ class IVRFlow(AGIView):
     def init_management_api(cls) -> None:
         cls.management_api = APIServer(flow_utils=cls.flow_utils, loop=cls.loop)
 
-    def init_flow_complement(cls):
+    @classmethod
+    def init_flow_complements(cls):
         cls.flow_utils = FlowUtils()
         Flow.init_cls(flow_utils=cls.flow_utils)
 
@@ -133,7 +134,7 @@ class IVRFlow(AGIView):
 
     @classmethod
     def prepare(cls):
-        cls.init_flow_complement()
+        cls.init_flow_complements()
         cls.prepare_loop()
         cls.prepare_db()
         cls.init_http_client()

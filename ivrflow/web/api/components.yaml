@@ -90,6 +90,24 @@ components:
         detail:
           message: Flow with name example_flow not found.
 
+    FlowNameIsRequired:
+      type: object
+      properties:
+        detail:
+          type: object
+      example:
+        detail:
+          message: Parameter name is required.
+
+    FlowNameAlreadyExists:
+      type: object
+      properties:
+        detail:
+          type: object
+      example:
+        detail:
+          message: Flow with name example_flow already exists.
+
   responses:
     GetEmailServersSuccess:
       description: Get email servers success.
@@ -133,6 +151,9 @@ components:
             oneOf:
               - $ref: "#/components/schemas/BodyNotJson"
               - $ref: "#/components/schemas/FlowIsRequired"
+              - $ref: "#/components/schemas/FlowNameIsRequired"
+              - $ref: "#/components/schemas/GetFlowByIDNotFound"
+              - $ref: "#/components/schemas/FlowNameAlreadyExists"
           examples:
             BodyNotJson:
               value:
@@ -142,6 +163,18 @@ components:
               value:
                 detail:
                   message: Parameter flow is required.
+            FlowNameIsRequired:
+              value:
+                detail:
+                  message: Parameter name is required.
+            GetFlowByIDNotFound:
+              value:
+                detail:
+                  message: Flow with ID 1 not found.
+            FlowNameAlreadyExists:
+              value:
+                detail:
+                  message: Flow with name example_flow already exists.
 
     GetFlowSuccess:
       description: Get flow success.

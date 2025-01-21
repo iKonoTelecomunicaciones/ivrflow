@@ -74,7 +74,7 @@ async def create_or_update_flow(request: web.Request) -> web.Response:
         flow = await DBFlow.get_by_id(flow_id)
         if not flow:
             return json_response(HTTPStatus.NOT_FOUND, f"Flow with ID {flow_id} not found")
-    
+
         if name:
             flow.name = name
         flow.flow = incoming_flow
