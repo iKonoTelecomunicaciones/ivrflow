@@ -11,6 +11,19 @@ ivrflow:
     http_request: 10 #seconds
     middlewares: 5 #seconds
 
+server:
+  # The IP and port to listen to.
+  hostname: 0.0.0.0
+  port: 29600
+  # Public base URL where the server is visible.
+  public_url: https://example.com
+  # The base management API path.
+  base_path: /ivrflow
+
+  # The shared secret to sign API access tokens.
+  # Set to "generate" to generate and save a new token at startup.
+  unshared_secret: generate
+
 logging:
   version: 1
   disable_existing_loggers: true
