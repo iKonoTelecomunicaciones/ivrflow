@@ -97,7 +97,6 @@ class IVRFlow(AGIView):
     def init_management_api(cls) -> None:
         cls.management_api = APIServer(flow_utils=cls.flow_utils, loop=cls.loop)
 
-    @classmethod
     def init_flow_complement(cls):
         cls.flow_utils = FlowUtils()
         Flow.init_cls(flow_utils=cls.flow_utils)
@@ -150,6 +149,10 @@ class IVRFlow(AGIView):
 
         cls.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(cls.loop)
+
+        if config["ivrflow.enable_asyncio_debug"]:
+            log.warning("Running in debug mode")
+            cls.loop.set_debug(True)
 
     async def sip(self):
         await self.algorithm()
