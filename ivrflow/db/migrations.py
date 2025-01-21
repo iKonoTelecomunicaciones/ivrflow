@@ -24,3 +24,14 @@ async def upgrade_v1(conn: Connection) -> None:
 @upgrade_table.register(description="Add stack field to channel table")
 async def upgrade_v3(conn: Connection) -> None:
     await conn.execute("ALTER TABLE channel ADD COLUMN stack JSONB NOT NULL DEFAULT '{}'::jsonb")
+
+
+@upgrade_table.register(description="Add flow table")
+async def upgrade_v4(conn: Connection) -> None:
+    await conn.execute(
+        """CREATE TABLE flow (
+            id          SERIAL PRIMARY KEY,
+            name        VARCHAR(100) NOT NULL UNIQUE,
+            flow        JSONB DEFAULT '{}'::jsonb
+        )"""
+    )
