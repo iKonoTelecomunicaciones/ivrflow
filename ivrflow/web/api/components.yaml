@@ -1,0 +1,17 @@
+components:
+  schemas:
+    SchemaOk:
+      type: object
+      properties:
+        message:
+          type: string
+      example:
+        message: "OK"
+
+  responses:
+    ResponseSuccess:
+      description: Response OK.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SchemaOk"

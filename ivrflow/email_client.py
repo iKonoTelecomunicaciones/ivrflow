@@ -70,7 +70,7 @@ class EmailClient:
     http_session: ClientSession = None
 
     servers: Dict[str, "EmailClient"] = {}
-    log: TraceLogger = getLogger("menuflow.email_client")
+    log: TraceLogger = getLogger("ivrflow.email_client")
 
     def __init__(
         self,

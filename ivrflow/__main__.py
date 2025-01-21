@@ -30,6 +30,7 @@ from .flow_utils import EmailServer, FlowUtils
 from .http_middleware import end_auth_middleware, start_auth_middleware
 from .models import Flow as FlowModel
 from .nodes import Base
+from .web import APIServer
 
 log: Logger = getLogger("ivrflow.main")
 
@@ -39,6 +40,7 @@ class IVRFlow(AGIView):
     db: Database
     http_client: ClientSession
     flow_utils: "FlowUtils" | None = None
+    management_api: APIServer
 
     @property
     def flow_path(self):
@@ -92,6 +94,10 @@ class IVRFlow(AGIView):
         cls.http_client = ClientSession(trace_configs=[trace_config], loop=cls.loop)
 
     @classmethod
+    def init_management_api(cls) -> None:
+        cls.management_api = APIServer(flow_utils=cls.flow_utils, loop=cls.loop)
+
+    @classmethod
     async def stop(cls) -> None:
         log.info("Stopping http client...")
         await cls.http_client.close()
@@ -102,6 +108,7 @@ class IVRFlow(AGIView):
         cls.flow_utils = FlowUtils()
         if cls.flow_utils:
             asyncio.create_task(cls.start_email_connections())
+        await cls.management_api.start()
 
     @classmethod
     def init(cls):
@@ -126,6 +133,7 @@ class IVRFlow(AGIView):
         cls.prepare_loop()
         cls.prepare_db()
         cls.init_http_client()
+        cls.init_management_api()
 
     @classmethod
     def prepare_loop(cls) -> None:
@@ -136,9 +144,11 @@ class IVRFlow(AGIView):
             log.debug("Using uvloop for asyncio")
 
         cls.loop = asyncio.new_event_loop()
-        cls.loop.set_debug(True)
-        # cls.loop.set_debug(True)
         asyncio.set_event_loop(cls.loop)
+
+        if config["ivrflow.enable_asyncio_debug"]:
+            log.warning("Running in debug mode")
+            cls.loop.set_debug(True)
 
     async def sip(self):
         await self.algorithm()
