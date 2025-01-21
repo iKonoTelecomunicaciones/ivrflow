@@ -31,6 +31,7 @@ async def upgrade_v4(conn: Connection) -> None:
     await conn.execute(
         """CREATE TABLE flow (
             id          SERIAL PRIMARY KEY,
+            name        VARCHAR(100) NOT NULL UNIQUE,
             flow        JSONB DEFAULT '{}'::jsonb
         )"""
     )

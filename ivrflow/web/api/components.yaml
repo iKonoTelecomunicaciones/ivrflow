@@ -111,6 +111,15 @@ components:
         detail:
           message: Flow with ID 1 not found.
 
+    GetFlowByNameNotFound:
+      type: object
+      properties:
+        detail:
+          type: object
+      example:
+        detail:
+          message: Flow with name example_flow not found.
+
   responses:
     GetEmailServersSuccess:
       description: Get email servers success.
@@ -176,4 +185,15 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/GetFlowByIDNotFound"
+            oneOf:
+              - $ref: "#/components/schemas/GetFlowByIDNotFound"
+              - $ref: "#/components/schemas/GetFlowByNameNotFound"
+          examples:
+            GetFlowByIDNotFound:
+              value:
+                detail:
+                  message: Flow with ID 1 not found.
+            GetFlowByNameNotFound:
+              value:
+                detail:
+                  message: Flow with name example_flow not found.

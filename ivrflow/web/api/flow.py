@@ -32,12 +32,15 @@ async def create_or_update_flow(request: web.Request) -> web.Response:
                     properties:
                         id:
                             type: integer
+                        name:
+                            type: string
                         flow:
                             type: object
                     required:
                         - flow
                     example:
                         id: 1
+                        name: "flow_name"
                         flow:
                             menu:
                                 flow_variables:
@@ -62,6 +65,7 @@ async def create_or_update_flow(request: web.Request) -> web.Response:
         return json_response(HTTPStatus.BAD_REQUEST, "Request body is not JSON.")
 
     flow_id = data.get("id")
+    name: str = data.get("name")
     incoming_flow = data.get("flow")
 
     if not incoming_flow:
@@ -69,13 +73,22 @@ async def create_or_update_flow(request: web.Request) -> web.Response:
 
     if flow_id:
         flow = await DBFlow.get_by_id(flow_id)
+        if name:
+            flow.name = name
         flow.flow = incoming_flow
         await flow.update()
 
         message = "Flow updated successfully"
         status = HTTPStatus.OK
     else:
-        new_flow = DBFlow(flow=incoming_flow)
+        if not name:
+            return json_response(HTTPStatus.BAD_REQUEST, "Parameter name is required")
+
+        flow_exists = await DBFlow.get_by_name(name)
+        if flow_exists:
+            return json_response(HTTPStatus.BAD_REQUEST, f"Flow with name {name} already exists")
+
+        new_flow = DBFlow(name=name, flow=incoming_flow)
         flow_id = await new_flow.insert()
         message = "Flow created successfully"
         status = HTTPStatus.CREATED
@@ -83,22 +96,27 @@ async def create_or_update_flow(request: web.Request) -> web.Response:
     return json_response(status=status, message=message, data={"flow_id": flow_id})
 
 
-@routes.get("/v1/flow/{flow_id}", allow_head=False)
+@routes.get("/v1/flow", allow_head=False)
 async def get_flow(request: web.Request) -> web.Response:
     """
     ---
-    summary: Get flow by ID or client MXID.
+    summary: Get flow by ID or flow name.
     tags:
         - Flow
 
     parameters:
         - name: flow_id
-          in: path
-          required: true
-          description: The room ID to set variables for
+          in: query
+          description: Flow ID to get.
           schema:
             type: integer
           example: 1
+        - name: flow_name
+          in: query
+          description: Flow name to get.
+          schema:
+              type: string
+          example: "flow_name"
 
     responses:
         '200':
@@ -106,13 +124,24 @@ async def get_flow(request: web.Request) -> web.Response:
         '404':
             $ref: '#/components/responses/GetFlowNotFound'
     """
-    flow_id = request.match_info["flow_id"]
-    flow = await DBFlow.get_by_id(int(flow_id))
+    flow_id = request.query.get("flow_id")
+    flow_name = request.query.get("flow_name")
+
+    if not flow_id and not flow_name:
+        return json_response(
+            status=HTTPStatus.BAD_REQUEST,
+            message="Parameter flow_id or flow_name is required",
+        )
+
+    if flow_id:
+        flow = await DBFlow.get_by_id(int(flow_id))
+        not_found_message = f"Flow with ID {flow_id} not found"
+    else:
+        flow = await DBFlow.get_by_name(flow_name)
+        not_found_message = f"Flow with name {flow_name} not found"
 
     if not flow:
-        return json_response(
-            status=HTTPStatus.NOT_FOUND, message=f"Flow with ID {flow_id} not found"
-        )
+        return json_response(status=HTTPStatus.NOT_FOUND, message=not_found_message)
 
     data = flow.serialize()
 
