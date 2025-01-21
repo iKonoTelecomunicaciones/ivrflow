@@ -28,7 +28,6 @@ components:
         detail:
           type: object
       example:
-        :wqvalue:
           detail:
             message: Flow created successfully.
             data:
@@ -66,40 +65,12 @@ components:
             variable_1: value_1
             variable_2: value_2
           nodes:
-            - id: message_1
-              type: message
-              message: message_1
-              o_connection: message_2
-
-    GetAllFlowsOk:
-      type: object
-      properties:
-        flows:
-          type: array
-      example:
-        flows:
-          - id: 1
-            flow:
-              menu:
-                flow_variables:
-                  variable_1: value_1
-                  variable_2: value_2
-                nodes:
-                  - id: message_1
-                    type: message
-                    message: message_1
-                    o_connection: message_2
-          - id: 2
-            flow:
-              menu:
-                flow_variables:
-                  variable_1: value_1
-                  variable_2: value_2
-                nodes:
-                  - id: message_1
-                    type: message
-                    message: message_1
-                    o_connection: message_2
+            - id: play
+              type: playback
+              file: "vm-extension"
+              escape_digits: 0
+              sample_offset: 0
+              o_connection: next_node
 
     GetFlowByIDNotFound:
       type: object
