@@ -16,6 +16,9 @@ ivrflow:
   # - database: the flow is defined in a database
   load_flow_from: "yaml"
 
+  # For debugging purposes, it's possible to enable asyncio debug mode.
+  enable_asyncio_debug: false
+
 server:
   # The IP and port to listen to.
   hostname: 0.0.0.0

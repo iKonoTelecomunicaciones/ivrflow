@@ -19,6 +19,7 @@ class Config(BaseFileConfig):
         copy_dict("ivrflow.database_opts")
         copy_dict("ivrflow.timeouts")
         copy("ivrflow.load_flow_from")
+        copy("ivrflow.enable_asyncio_debug")
 
         # Logging
         copy_dict("logging")
