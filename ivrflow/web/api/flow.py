@@ -42,17 +42,16 @@ async def create_or_update_flow(request: web.Request) -> web.Response:
                         id: 1
                         name: "flow_name"
                         flow:
-                            menu:
-                                flow_variables:
-                                    var1: "value1"
-                                    var2: "value2"
-                                nodes:
-                                    - id: play
-                                      type: playback
-                                      file: "vm-extension"
-                                      escape_digits: 0
-                                      sample_offset: 0
-                                      o_connection: next_node
+                            flow_variables:
+                                var1: "value1"
+                                var2: "value2"
+                            nodes:
+                                - id: play
+                                  type: playback
+                                  file: "vm-extension"
+                                  escape_digits: 0
+                                  sample_offset: 0
+                                  o_connection: next_node
     responses:
         '200':
             $ref: '#/components/responses/CreateUpdateFlowSuccess'

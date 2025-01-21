@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict, Optional
+from typing import Dict, List, Optional, Union
 
 from mautrix.util.logging import TraceLogger
 
@@ -32,49 +32,55 @@ from .nodes import (
 )
 from .types import MiddlewareType, NodeType
 
+Node = Union[
+    Answer,
+    DatabaseDel,
+    DatabaseGet,
+    DatabasePut,
+    Email,
+    ExecApp,
+    GetData,
+    GetFullVariable,
+    GotoOnExit,
+    Hangup,
+    HTTPRequest,
+    Playback,
+    Record,
+    SetCallerID,
+    SetMusic,
+    SetVariable,
+    Subroutine,
+    Switch,
+    Verbose,
+]
+
 
 class Flow:
     log: TraceLogger = logging.getLogger("ivrflow.flow")
+    flow_utils: FlowUtils
 
-    nodes: Dict[str, object]
-    nodes_by_id: Dict[str, object] = {}
+    def __init__(self) -> None:
+        self.data: FlowModel = None
+        self.nodes: List[Node] = []
+        self.nodes_by_id: Dict[str, Node] = {}
 
-    def __init__(self, *, flow_data: FlowModel, flow_utils: Optional[FlowUtils] = None) -> None:
-        self.content: FlowModel = flow_data
-        self.nodes = self.content.nodes
-        self.flow_utils = flow_utils
-
-    def _add_node_to_cache(
-        self,
-        node_data: (
-            Playback
-            | Switch
-            | HTTPRequest
-            | GetData
-            | SetVariable
-            | Record
-            | Hangup
-            | SetMusic
-            | Verbose
-            | SetCallerID
-            | Answer
-            | DatabaseDel
-            | DatabaseGet
-            | DatabasePut
-            | ExecApp
-            | Email
-            | GetFullVariable
-            | GotoOnExit
-            | Subroutine
-        ),
-    ):
-        self.nodes_by_id[node_data.id] = node_data
+    async def load_flow(self, flow_name: str):
+        self.data = await FlowModel.load_flow(flow_name=flow_name)
+        self.nodes = self.data.nodes or []
+        self.nodes_by_id: Dict[str, Dict] = {}
 
     @property
     def flow_variables(self) -> Dict:
-        return self.content.flow_variables
+        return self.data.flow_variables
 
-    def get_node_by_id(self, node_id: str) -> object | None:
+    @classmethod
+    def init_cls(cls, flow_utils: FlowUtils) -> None:
+        cls.flow_utils = flow_utils
+
+    def _add_node_to_cache(self, node_data: Node):
+        self.nodes_by_id[node_data.id] = node_data
+
+    def get_node_by_id(self, node_id: str) -> Node | None:
         """This function returns a node from a cache or a list of nodes based on its ID.
 
         Parameters
@@ -132,29 +138,7 @@ class Flow:
 
         return middleware_initialized
 
-    def node(
-        self, channel: Channel
-    ) -> (
-        Playback
-        | Switch
-        | HTTPRequest
-        | GetData
-        | SetVariable
-        | Record
-        | Hangup
-        | SetMusic
-        | Verbose
-        | SetCallerID
-        | ExecApp
-        | Email
-        | DatabaseGet
-        | GetFullVariable
-        | GotoOnExit
-        | Answer
-        | DatabasePut
-        | DatabaseDel
-        | None
-    ):
+    def node(self, channel: Channel) -> Optional[Node]:
         node_data = self.get_node_by_id(node_id=channel.node_id)
 
         if not node_data:

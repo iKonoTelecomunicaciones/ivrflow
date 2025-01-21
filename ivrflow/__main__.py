@@ -43,7 +43,7 @@ class IVRFlow(AGIView):
     management_api: APIServer
 
     @property
-    def flow_path(self):
+    def flow_name(self):
         return self.request.path.strip("/")
 
     @classmethod
@@ -98,6 +98,11 @@ class IVRFlow(AGIView):
         cls.management_api = APIServer(flow_utils=cls.flow_utils, loop=cls.loop)
 
     @classmethod
+    def init_flow_complement(cls):
+        cls.flow_utils = FlowUtils()
+        Flow.init_cls(flow_utils=cls.flow_utils)
+
+    @classmethod
     async def stop(cls) -> None:
         log.info("Stopping http client...")
         await cls.http_client.close()
@@ -129,7 +134,7 @@ class IVRFlow(AGIView):
 
     @classmethod
     def prepare(cls):
-        cls.flow_utils = FlowUtils()
+        cls.init_flow_complement()
         cls.prepare_loop()
         cls.prepare_db()
         cls.init_http_client()
@@ -160,8 +165,9 @@ class IVRFlow(AGIView):
         channel = await Channel.get_by_channel_uniqueid(
             channel_uniqueid=self.request.headers["agi_uniqueid"]
         )
-        flow_model = FlowModel.load_flow(self.flow_path)
-        flow = Flow(flow_data=flow_model, flow_utils=self.flow_utils)
+
+        flow = Flow()
+        await flow.load_flow(self.flow_name)
 
         return flow, channel
 
@@ -174,7 +180,7 @@ class IVRFlow(AGIView):
         node = flow.node(channel=channel)
 
         if node is None:
-            log.debug(f"Channel {channel.channel_uniqueid} does not have a node [{node.id}]")
+            log.debug(f"Channel {channel.channel_uniqueid} does not have a node")
             await channel.update_ivr(node_id="start")
             return
 

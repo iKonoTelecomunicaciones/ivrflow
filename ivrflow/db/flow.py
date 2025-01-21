@@ -1,5 +1,5 @@
 import json
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional
 
 from asyncpg import Record
 from attr import dataclass, ib
@@ -24,8 +24,8 @@ class Flow(SerializableAttrs):
         return (self.name, json.dumps(self.flow))
 
     @classmethod
-    def _from_row(cls, row: Record) -> Union["Flow", None]:
-        return cls(id=row["id"], flow=json.loads(row["flow"]))
+    def _from_row(cls, row: Record) -> Optional["Flow"]:
+        return cls(id=row["id"], name=row["name"], flow=json.loads(row["flow"]))
 
     @classmethod
     async def all(cls) -> list[Dict]:
@@ -37,7 +37,7 @@ class Flow(SerializableAttrs):
         return [cls._from_row(row).serialize() for row in rows]
 
     @classmethod
-    async def get_by_id(cls, id: int) -> Union["Flow", None]:
+    async def get_by_id(cls, id: int) -> Optional["Flow"]:
         q = f"SELECT {cls.__columns} FROM flow WHERE id=$1"
         row = await cls.db.fetchrow(q, id)
 
@@ -47,7 +47,7 @@ class Flow(SerializableAttrs):
         return cls._from_row(row)
 
     @classmethod
-    async def get_by_name(cls, name: str) -> Union["Flow", None]:
+    async def get_by_name(cls, name: str) -> Optional["Flow"]:
         q = f"SELECT {cls.__columns} FROM flow WHERE name=$1"
         row = await cls.db.fetchrow(q, name)
 

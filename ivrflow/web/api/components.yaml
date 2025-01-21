@@ -62,15 +62,14 @@ components:
       example:
         id: 1
         flow:
-          menu:
-            flow_variables:
-              variable_1: value_1
-              variable_2: value_2
-            nodes:
-              - id: message_1
-                type: message
-                message: message_1
-                o_connection: message_2
+          flow_variables:
+            variable_1: value_1
+            variable_2: value_2
+          nodes:
+            - id: message_1
+              type: message
+              message: message_1
+              o_connection: message_2
 
     GetAllFlowsOk:
       type: object
