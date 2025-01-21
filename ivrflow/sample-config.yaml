@@ -11,6 +11,9 @@ ivrflow:
     http_request: 10 #seconds
     middlewares: 5 #seconds
 
+  # For debugging purposes, it's possible to enable asyncio debug mode.
+  enable_asyncio_debug: false
+
 server:
   # The IP and port to listen to.
   hostname: 0.0.0.0

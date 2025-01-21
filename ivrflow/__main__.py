@@ -146,6 +146,10 @@ class IVRFlow(AGIView):
         cls.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(cls.loop)
 
+        if config["ivrflow.enable_asyncio_debug"]:
+            log.warning("Running in debug mode")
+            cls.loop.set_debug(True)
+
     async def sip(self):
         await self.algorithm()
 
