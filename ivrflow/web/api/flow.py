@@ -22,9 +22,9 @@ async def create_or_update_flow(request: web.Request) -> web.Response:
 
     requestBody:
         required: false
-        description: A json with `id` and `flow` keys.
+        description: A json with `id`, `name`and  `flow` keys.
                      `id` is the flow ID to update, `flow` is the flow content.
-                     send only `flow` to create a new flow.
+                     send only `name` and `flow` to create a new flow.
         content:
             application/json:
                 schema:
@@ -73,6 +73,9 @@ async def create_or_update_flow(request: web.Request) -> web.Response:
 
     if flow_id:
         flow = await DBFlow.get_by_id(flow_id)
+        if not flow:
+            return json_response(HTTPStatus.NOT_FOUND, f"Flow with ID {flow_id} not found")
+
         if name:
             flow.name = name
         flow.flow = incoming_flow
