@@ -105,7 +105,6 @@ class IVRFlow(AGIView):
     @classmethod
     async def start(cls):
         await cls.start_db()
-        cls.flow_utils = FlowUtils()
         if cls.flow_utils:
             asyncio.create_task(cls.start_email_connections())
         await cls.management_api.start()
@@ -130,6 +129,7 @@ class IVRFlow(AGIView):
 
     @classmethod
     def prepare(cls):
+        cls.flow_utils = FlowUtils()
         cls.prepare_loop()
         cls.prepare_db()
         cls.init_http_client()

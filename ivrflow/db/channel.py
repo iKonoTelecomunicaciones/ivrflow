@@ -33,16 +33,6 @@ class Channel:
 
     _columns = "channel_uniqueid, variables, node_id, state, stack"
 
-    @classmethod
-    def _from_row(cls, row: Record) -> Channel | None:
-        data = {**row}
-        try:
-            state = ChannelState(data.pop("state"))
-        except ValueError:
-            state = ""
-
-        return cls(state=state, **data)
-
     @property
     def values(self) -> tuple:
         return (
@@ -64,16 +54,15 @@ class Channel:
                 stack.queue = []
         return stack
 
-    async def insert(self) -> str:
-        q = f"INSERT INTO channel ({self._columns}) VALUES ($1, $2, $3, $4, $5)"
-        await self.db.execute(q, *self.values)
+    @classmethod
+    def _from_row(cls, row: Record) -> Channel | None:
+        data = {**row}
+        try:
+            state = ChannelState(data.pop("state"))
+        except ValueError:
+            state = ""
 
-    async def update(self) -> None:
-        q = (
-            "UPDATE channel SET variables = $2, node_id = $3, state = $4, stack=$5 "
-            "WHERE channel_uniqueid = $1"
-        )
-        await self.db.execute(q, *self.values)
+        return cls(state=state, **data)
 
     @classmethod
     async def get_by_channel_uniqueid(cls, channel_uniqueid: ChannelUniqueID) -> Channel | None:
@@ -84,3 +73,14 @@ class Channel:
             return
 
         return cls._from_row(row)
+
+    async def insert(self) -> str:
+        q = f"INSERT INTO channel ({self._columns}) VALUES ($1, $2, $3, $4, $5)"
+        await self.db.execute(q, *self.values)
+
+    async def update(self) -> None:
+        q = (
+            "UPDATE channel SET variables = $2, node_id = $3, state = $4, stack=$5 "
+            "WHERE channel_uniqueid = $1"
+        )
+        await self.db.execute(q, *self.values)

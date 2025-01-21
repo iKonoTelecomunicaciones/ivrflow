@@ -1,17 +1,179 @@
 components:
   schemas:
-    SchemaOk:
+    GetEmailServersOk:
       type: object
       properties:
-        message:
-          type: string
+        email_servers:
+          type: array
       example:
-        message: "OK"
+        email_servers:
+          - example_email_server_1
+          - example_email_server_2
+          - example_email_server_3
+
+    GetMiddlewaresOk:
+      type: object
+      properties:
+        middlewares:
+          type: array
+      example:
+        middlewares:
+          - example_middleware_1
+          - example_middleware_2
+          - example_middleware_3
+
+    CreateUpdateFlowOk:
+      type: object
+      properties:
+        detail:
+          type: object
+      example:
+        :wqvalue:
+          detail:
+            message: Flow created successfully.
+            data:
+              flow_id: 1
+
+    BodyNotJson:
+      type: object
+      properties:
+        detail:
+          type: object
+      example:
+        detail:
+          message: Request body is not JSON.
+
+    FlowIsRequired:
+      type: object
+      properties:
+        detail:
+          type: object
+      example:
+        detail:
+          message: Parameter flow is required.
+
+    GetFlowOk:
+      type: object
+      properties:
+        id:
+          type: integer
+        flow:
+          type: object
+      example:
+        id: 1
+        flow:
+          menu:
+            flow_variables:
+              variable_1: value_1
+              variable_2: value_2
+            nodes:
+              - id: message_1
+                type: message
+                message: message_1
+                o_connection: message_2
+
+    GetAllFlowsOk:
+      type: object
+      properties:
+        flows:
+          type: array
+      example:
+        flows:
+          - id: 1
+            flow:
+              menu:
+                flow_variables:
+                  variable_1: value_1
+                  variable_2: value_2
+                nodes:
+                  - id: message_1
+                    type: message
+                    message: message_1
+                    o_connection: message_2
+          - id: 2
+            flow:
+              menu:
+                flow_variables:
+                  variable_1: value_1
+                  variable_2: value_2
+                nodes:
+                  - id: message_1
+                    type: message
+                    message: message_1
+                    o_connection: message_2
+
+    GetFlowByIDNotFound:
+      type: object
+      properties:
+        detail:
+          type: object
+      example:
+        detail:
+          message: Flow with ID 1 not found.
 
   responses:
-    ResponseSuccess:
-      description: Response OK.
+    GetEmailServersSuccess:
+      description: Get email servers success.
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/SchemaOk"
+            $ref: "#/components/schemas/GetEmailServersOk"
+
+    GetMiddlewaresSuccess:
+      description: Get middlewares success.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GetMiddlewaresOk"
+
+    CreateUpdateFlowSuccess:
+      description: Create or update flow success.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CreateUpdateFlowOk"
+          examples:
+            CreateFlow:
+              value:
+                detail:
+                  message: Flow created successfully.
+                  data:
+                    flow_id: 1
+            UpdateFlow:
+              value:
+                detail:
+                  message: Flow updated successfully.
+                  data:
+                    flow_id: 1
+
+    CreateUpdateFlowBadRequest:
+      description: Create or update flow bad request.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/BodyNotJson"
+              - $ref: "#/components/schemas/FlowIsRequired"
+          examples:
+            BodyNotJson:
+              value:
+                detail:
+                  message: Request body is not JSON.
+            FlowIsRequired:
+              value:
+                detail:
+                  message: Parameter flow is required.
+
+    GetFlowSuccess:
+      description: Get flow success.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GetFlowOk"
+
+    GetFlowNotFound:
+      description: Get flow not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GetFlowByIDNotFound"
