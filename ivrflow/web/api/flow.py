@@ -1,6 +1,6 @@
 from aiohttp import web
 
-from .. import routes
+from ..base import routes
 
 
 @routes.get("/hello-flow")
