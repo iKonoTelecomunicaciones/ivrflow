@@ -28,7 +28,6 @@ components:
         detail:
           type: object
       example:
-        :wqvalue:
           detail:
             message: Flow created successfully.
             data:
@@ -62,45 +61,16 @@ components:
       example:
         id: 1
         flow:
-          menu:
-            flow_variables:
-              variable_1: value_1
-              variable_2: value_2
-            nodes:
-              - id: message_1
-                type: message
-                message: message_1
-                o_connection: message_2
-
-    GetAllFlowsOk:
-      type: object
-      properties:
-        flows:
-          type: array
-      example:
-        flows:
-          - id: 1
-            flow:
-              menu:
-                flow_variables:
-                  variable_1: value_1
-                  variable_2: value_2
-                nodes:
-                  - id: message_1
-                    type: message
-                    message: message_1
-                    o_connection: message_2
-          - id: 2
-            flow:
-              menu:
-                flow_variables:
-                  variable_1: value_1
-                  variable_2: value_2
-                nodes:
-                  - id: message_1
-                    type: message
-                    message: message_1
-                    o_connection: message_2
+          flow_variables:
+            variable_1: value_1
+            variable_2: value_2
+          nodes:
+            - id: play
+              type: playback
+              file: "vm-extension"
+              escape_digits: 0
+              sample_offset: 0
+              o_connection: next_node
 
     GetFlowByIDNotFound:
       type: object
@@ -119,6 +89,24 @@ components:
       example:
         detail:
           message: Flow with name example_flow not found.
+
+    FlowNameIsRequired:
+      type: object
+      properties:
+        detail:
+          type: object
+      example:
+        detail:
+          message: Parameter name is required.
+
+    FlowNameAlreadyExists:
+      type: object
+      properties:
+        detail:
+          type: object
+      example:
+        detail:
+          message: Flow with name example_flow already exists.
 
   responses:
     GetEmailServersSuccess:
@@ -163,6 +151,9 @@ components:
             oneOf:
               - $ref: "#/components/schemas/BodyNotJson"
               - $ref: "#/components/schemas/FlowIsRequired"
+              - $ref: "#/components/schemas/FlowNameIsRequired"
+              - $ref: "#/components/schemas/GetFlowByIDNotFound"
+              - $ref: "#/components/schemas/FlowNameAlreadyExists"
           examples:
             BodyNotJson:
               value:
@@ -172,6 +163,18 @@ components:
               value:
                 detail:
                   message: Parameter flow is required.
+            FlowNameIsRequired:
+              value:
+                detail:
+                  message: Parameter name is required.
+            GetFlowByIDNotFound:
+              value:
+                detail:
+                  message: Flow with ID 1 not found.
+            FlowNameAlreadyExists:
+              value:
+                detail:
+                  message: Flow with name example_flow already exists.
 
     GetFlowSuccess:
       description: Get flow success.

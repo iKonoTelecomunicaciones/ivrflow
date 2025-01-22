@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from logging import Logger, getLogger
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 
 import yaml
 from attr import dataclass, ib
 from mautrix.types import SerializableAttrs
 
+from ..config import config
+from ..db import Flow as DBFlow
 from ..types import NodeType
 from .nodes import (
     Answer,
@@ -30,6 +32,28 @@ from .nodes import (
     Verbose,
 )
 
+Node = Union[
+    Answer,
+    DatabaseDel,
+    DatabaseGet,
+    DatabasePut,
+    Email,
+    ExecApp,
+    GetData,
+    GetFullVariable,
+    GotoOnExit,
+    Hangup,
+    HTTPRequest,
+    Playback,
+    Record,
+    SetCallerID,
+    SetMusic,
+    SetVariable,
+    Subroutine,
+    Switch,
+    Verbose,
+]
+
 log: Logger = getLogger("ivrflow.models.flow")
 
 
@@ -39,14 +63,30 @@ class Flow(SerializableAttrs):
     nodes: List[Playback, Switch] = ib(factory=list)
 
     @classmethod
-    def load_flow(cls, path: str) -> "Flow":
+    def load_from_yaml(cls, flow_name: str) -> "Flow":
+        log.info(f"Loading flow {flow_name} from yaml")
         try:
-            path = f"/data/flows/{path}.yaml"
+            path = f"/data/flows/{flow_name}.yaml"
             with open(path, "r") as file:
                 flow: Dict = yaml.safe_load(file)
             return cls.from_dict(flow)
         except FileNotFoundError:
             log.warning(f"File {path} not found")
+
+    @classmethod
+    async def load_from_database(cls, flow_name: str) -> "Flow":
+        log.info(f"Loading flow {flow_name} from database")
+        flow = await DBFlow.get_by_name(flow_name)
+        return cls.from_dict(flow.flow)
+
+    @classmethod
+    async def load_flow(cls, flow_name: str) -> "Flow":
+        if config["ivrflow.load_flow_from"] == "yaml":
+            flow = cls.load_from_yaml(flow_name)
+        else:
+            flow = await cls.load_from_database(flow_name)
+
+        return flow
 
     @classmethod
     def from_dict(cls, flow: Dict) -> "Flow":
@@ -56,28 +96,7 @@ class Flow(SerializableAttrs):
         )
 
     @classmethod
-    def initialize_node_dataclass(
-        cls, node: Dict
-    ) -> (
-        Playback
-        | Switch
-        | HTTPRequest
-        | GetData
-        | SetVariable
-        | Record
-        | Hangup
-        | SetMusic
-        | Verbose
-        | SetCallerID
-        | ExecApp
-        | Email
-        | GetFullVariable
-        | DatabaseGet
-        | GotoOnExit
-        | Answer
-        | DatabasePut
-        | DatabaseDel
-    ):
+    def initialize_node_dataclass(cls, node: Dict) -> Node:
         try:
             node_type = NodeType(node.get("type"))
         except ValueError:
