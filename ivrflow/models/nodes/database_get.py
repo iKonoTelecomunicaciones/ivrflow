@@ -27,3 +27,12 @@ class DatabaseGet(FlowObject):
 
     variables: Dict = ib(factory=Dict)
     o_connection: str = ib(default="")
+
+    @staticmethod
+    def from_dict(node: Dict) -> "DatabaseGet":
+        return DatabaseGet(
+            id=node.get("id"),
+            type=node.get("type"),
+            variables=node.get("variables"),
+            o_connection=node.get("o_connection"),
+        )

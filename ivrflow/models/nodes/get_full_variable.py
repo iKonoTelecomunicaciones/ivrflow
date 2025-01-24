@@ -23,3 +23,12 @@ class GetFullVariable(FlowObject):
 
     variables: Dict = ib(factory=Dict)
     o_connection: str = ib(default=None)
+
+    @staticmethod
+    def from_dict(node: Dict[str, Any]) -> "GetFullVariable":
+        return GetFullVariable(
+            id=node.get("id"),
+            type=node.get("type"),
+            variables=node.get("variables"),
+            o_connection=node.get("o_connection"),
+        )

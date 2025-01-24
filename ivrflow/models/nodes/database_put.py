@@ -27,3 +27,12 @@ class DatabasePut(FlowObject):
 
     entries: Dict = ib(factory=Dict)
     o_connection: str = ib(default="")
+
+    @staticmethod
+    def from_dict(node: Dict) -> "DatabasePut":
+        return DatabasePut(
+            id=node.get("id"),
+            type=node.get("type"),
+            entries=node.get("entries"),
+            o_connection=node.get("o_connection"),
+        )

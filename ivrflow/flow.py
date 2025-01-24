@@ -21,6 +21,7 @@ from .nodes import (
     GotoOnExit,
     Hangup,
     HTTPRequest,
+    NoOp,
     Playback,
     Record,
     SetCallerID,
@@ -52,6 +53,7 @@ Node = Union[
     Subroutine,
     Switch,
     Verbose,
+    NoOp,
 ]
 
 
@@ -264,6 +266,12 @@ class Flow:
         elif node_type == NodeType.subroutine:
             node_initialized = Subroutine(
                 subroutine_node_data=node_data,
+                default_variables=self.flow_variables,
+                channel=channel,
+            )
+        elif node_type == NodeType.no_op:
+            node_initialized = NoOp(
+                no_op_content=node_data,
                 default_variables=self.flow_variables,
                 channel=channel,
             )

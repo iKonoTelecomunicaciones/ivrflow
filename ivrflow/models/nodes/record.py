@@ -34,3 +34,18 @@ class Record(FlowObject):
     beep: str = ib(default="beep")
     silence: int = ib(default=None)
     o_connection: str = ib(default="")
+
+    @staticmethod
+    def from_dict(node: dict) -> "Record":
+        return Record(
+            id=node.get("id"),
+            type=node.get("type"),
+            file=node.get("file"),
+            format=node.get("format"),
+            escape_digits=node.get("escape_digits"),
+            timeout=node.get("timeout"),
+            offset=node.get("offset"),
+            beep=node.get("beep"),
+            silence=node.get("silence"),
+            o_connection=node.get("o_connection"),
+        )

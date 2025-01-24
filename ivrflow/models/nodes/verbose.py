@@ -21,3 +21,13 @@ class Verbose(FlowObject):
     message: str = ib(default="")
     level: int = ib(default=1)
     o_connection: str = ib(default="")
+
+    @staticmethod
+    def from_dict(node: dict) -> "Verbose":
+        return Verbose(
+            id=node.get("id"),
+            type=node.get("type"),
+            message=node.get("message"),
+            level=node.get("level"),
+            o_connection=node.get("o_connection"),
+        )

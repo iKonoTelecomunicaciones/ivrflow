@@ -24,10 +24,6 @@ class Playback(Base):
         return self.render_data(data=self.content.file)
 
     @property
-    def text(self) -> str:
-        return self.render_data(data=self.content.text)
-
-    @property
     def escape_digits(self) -> str:
         return self.render_data(data=self.content.escape_digits)
 

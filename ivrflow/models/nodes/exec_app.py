@@ -21,3 +21,13 @@ class ExecApp(FlowObject):
     application: str = ib(default="")
     options: str = ib(default="")
     o_connection: str = ib(default="")
+
+    @staticmethod
+    def from_dict(node: dict) -> "ExecApp":
+        return ExecApp(
+            id=node.get("id"),
+            type=node.get("type"),
+            application=node.get("application"),
+            options=node.get("options"),
+            o_connection=node.get("o_connection"),
+        )

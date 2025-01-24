@@ -19,3 +19,12 @@ class SetCallerID(FlowObject):
 
     number: int = ib(default=1)
     o_connection: str = ib(default="")
+
+    @staticmethod
+    def from_dict(node: dict) -> "SetCallerID":
+        return SetCallerID(
+            id=node.get("id"),
+            type=node.get("type"),
+            number=node.get("number"),
+            o_connection=node.get("o_connection"),
+        )

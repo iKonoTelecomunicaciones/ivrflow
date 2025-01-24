@@ -21,3 +21,12 @@ class Subroutine(FlowObject):
 
     go_sub: str = ib(default=None)
     o_connection: str = ib(default=None)
+
+    @staticmethod
+    def from_dict(node: dict) -> Subroutine:
+        return Subroutine(
+            id=node.get("id"),
+            type=node.get("type"),
+            go_sub=node.get("go_sub"),
+            o_connection=node.get("o_connection"),
+        )
