@@ -24,3 +24,13 @@ class SetMusic(FlowObject):
     music_class: str = ib(default="default")
     toggle: str = ib(default="on")
     o_connection: str = ib(default=None)
+
+    @staticmethod
+    def from_dict(node: dict) -> "SetMusic":
+        return SetMusic(
+            id=node.get("id"),
+            type=node.get("type"),
+            music_class=node.get("music_class"),
+            toggle=node.get("toggle"),
+            o_connection=node.get("o_connection"),
+        )

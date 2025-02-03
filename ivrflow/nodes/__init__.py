@@ -10,6 +10,7 @@ from .get_full_variable import GetFullVariable
 from .goto_on_exit import GotoOnExit
 from .hangup import Hangup
 from .http_request import HTTPRequest
+from .no_op import NoOp
 from .playback import Playback
 from .record import Record
 from .set_callerid import SetCallerID

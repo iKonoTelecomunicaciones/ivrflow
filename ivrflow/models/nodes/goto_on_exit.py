@@ -21,3 +21,13 @@ class GotoOnExit(FlowObject):
     context: str = ib(default="Incoming")
     extension: str = ib(default="")
     priority: str = ib(default="1")
+
+    @staticmethod
+    def from_dict(node: dict) -> "GotoOnExit":
+        return GotoOnExit(
+            id=node.get("id"),
+            type=node.get("type"),
+            context=node.get("context"),
+            extension=node.get("extension"),
+            priority=node.get("priority"),
+        )

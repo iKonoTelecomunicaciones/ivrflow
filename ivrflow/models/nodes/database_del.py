@@ -27,3 +27,12 @@ class DatabaseDel(FlowObject):
 
     entries: List[str] = ib(default=List[str])
     o_connection: str = ib(default="")
+
+    @staticmethod
+    def from_dict(node: dict) -> "DatabaseDel":
+        return DatabaseDel(
+            id=node.get("id"),
+            type=node.get("type"),
+            entries=node.get("entries"),
+            o_connection=node.get("o_connection"),
+        )

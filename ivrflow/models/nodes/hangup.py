@@ -21,3 +21,11 @@ class Hangup(FlowObject):
     """
 
     chan: str = ib(default="")
+
+    @staticmethod
+    def from_dict(node: dict) -> "Hangup":
+        return Hangup(
+            id=node.get("id"),
+            type=node.get("type"),
+            chan=node.get("chan"),
+        )

@@ -46,3 +46,18 @@ class Email(FlowObject):
     format: str = ib(default=None)
     encode_type: str = ib(default=None)
     o_connection: str = ib(default=None)
+
+    @staticmethod
+    def from_dict(node: dict) -> Email:
+        return Email(
+            id=node.get("id"),
+            type=node.get("type"),
+            text=node.get("text"),
+            server_id=node.get("server_id"),
+            subject=node.get("subject"),
+            recipients=node.get("recipients"),
+            attachments=node.get("attachments"),
+            format=node.get("format"),
+            encode_type=node.get("encode_type"),
+            o_connection=node.get("o_connection"),
+        )

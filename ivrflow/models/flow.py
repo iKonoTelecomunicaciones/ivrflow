@@ -22,6 +22,7 @@ from .nodes import (
     GotoOnExit,
     Hangup,
     HTTPRequest,
+    NoOp,
     Playback,
     Record,
     SetCallerID,
@@ -52,6 +53,7 @@ Node = Union[
     Subroutine,
     Switch,
     Verbose,
+    NoOp,
 ]
 
 log: Logger = getLogger("ivrflow.models.flow")
@@ -103,41 +105,27 @@ class Flow(SerializableAttrs):
             log.warning(f"Node type {node.get('type')} not found")
             return
 
-        if node_type == NodeType.playback:
-            return Playback(**node)
-        elif node_type == NodeType.switch:
-            return Switch.from_dict(node)
-        elif node_type == NodeType.http_request:
-            return HTTPRequest.from_dict(node)
-        elif node_type == NodeType.get_data:
-            return GetData.from_dict(node)
-        elif node_type == NodeType.set_variable:
-            return SetVariable(**node)
-        elif node_type == NodeType.record:
-            return Record(**node)
-        elif node_type == NodeType.hangup:
-            return Hangup(**node)
-        elif node_type == NodeType.set_music:
-            return SetMusic(**node)
-        elif node_type == NodeType.verbose:
-            return Verbose(**node)
-        elif node_type == NodeType.set_callerid:
-            return SetCallerID(**node)
-        elif node_type == NodeType.exec_app:
-            return ExecApp(**node)
-        elif node_type == NodeType.database_get:
-            return DatabaseGet(**node)
-        elif node_type == NodeType.get_full_variable:
-            return GetFullVariable(**node)
-        elif node_type == NodeType.database_del:
-            return DatabaseDel(**node)
-        elif node_type == NodeType.email:
-            return Email(**node)
-        elif node_type == NodeType.database_put:
-            return DatabasePut(**node)
-        elif node_type == NodeType.answer:
-            return Answer(**node)
-        elif node_type == NodeType.goto_on_exit:
-            return GotoOnExit(**node)
-        elif node_type == NodeType.subroutine:
-            return Subroutine(**node)
+        node_class: dict[NodeType, Node] = {
+            NodeType.playback: Playback,
+            NodeType.switch: Switch,
+            NodeType.http_request: HTTPRequest,
+            NodeType.get_data: GetData,
+            NodeType.set_variable: SetVariable,
+            NodeType.record: Record,
+            NodeType.hangup: Hangup,
+            NodeType.set_music: SetMusic,
+            NodeType.verbose: Verbose,
+            NodeType.set_callerid: SetCallerID,
+            NodeType.exec_app: ExecApp,
+            NodeType.database_get: DatabaseGet,
+            NodeType.get_full_variable: GetFullVariable,
+            NodeType.database_del: DatabaseDel,
+            NodeType.email: Email,
+            NodeType.database_put: DatabasePut,
+            NodeType.answer: Answer,
+            NodeType.goto_on_exit: GotoOnExit,
+            NodeType.subroutine: Subroutine,
+            NodeType.no_op: NoOp,
+        }
+
+        return node_class[node_type].from_dict(node)

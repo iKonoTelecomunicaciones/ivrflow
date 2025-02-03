@@ -15,6 +15,7 @@ from .nodes import (
     GotoOnExit,
     Hangup,
     HTTPRequest,
+    NoOp,
     Playback,
     Record,
     SetCallerID,
