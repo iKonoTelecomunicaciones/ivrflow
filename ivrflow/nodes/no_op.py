@@ -30,7 +30,7 @@ class NoOp(Base):
         )
 
     async def run(self) -> None:
-        self.log.info(f"Channel {self.channel.channel_uniqueid} enters message node {self.id}")
+        self.log.info(f"Channel {self.channel.channel_uniqueid} enters no_op node {self.id}")
 
         if self.text:
             self.log.info(f"Channel {self.channel.channel_uniqueid} log message: {self.text}")
