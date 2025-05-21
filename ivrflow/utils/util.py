@@ -1,10 +1,12 @@
 import ast
-from logging import getLogger
-from mautrix.util.logging import TraceLogger
-from jinja2 import TemplateSyntaxError, UndefinedError
-from ..jinja.jinja_template import jinja_env
-import traceback
 import html
+import traceback
+from logging import getLogger
+
+from jinja2 import TemplateSyntaxError, UndefinedError
+from mautrix.util.logging import TraceLogger
+
+from ..jinja.jinja_template import jinja_env
 
 log: TraceLogger = getLogger("ivrflow.util")
 

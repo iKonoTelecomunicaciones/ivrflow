@@ -95,6 +95,7 @@ class Base:
             The rendered data, which can be a dictionary, list, or string.
 
         """
+
         return Util.render_data(
             data=data,
             default_variables=self.default_variables,
