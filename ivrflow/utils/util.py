@@ -87,13 +87,7 @@ class Util:
                 pass
             else:
                 if isinstance(literal_eval_body, (dict, list)):
-                    # log.error(
-                    #     f"Error evaluating body: {literal_eval_body}",
-                    # )
                     return literal_eval_body
-            # log.error(
-            #     f"Error evaluating body: {evaluated_body}",
-            # )
             return evaluated_body
         else:
             return data
