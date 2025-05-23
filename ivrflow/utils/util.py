@@ -1,4 +1,5 @@
 import ast
+import copy
 import html
 import traceback
 from logging import getLogger
@@ -40,16 +41,17 @@ class Util:
 
         """
         dict_variables = default_variables | all_variables
+        data_copy = copy.deepcopy(data)
 
-        if isinstance(data, dict):
-            for key, value in data.items():
-                data[key] = cls.render_data(value, default_variables, all_variables)
-            return data
-        elif isinstance(data, list):
-            return [cls.render_data(item, default_variables, all_variables) for item in data]
-        elif isinstance(data, str):
+        if isinstance(data_copy, dict):
+            for key, value in data_copy.items():
+                data_copy[key] = cls.render_data(value, default_variables, all_variables)
+            return data_copy
+        elif isinstance(data_copy, list):
+            return [cls.render_data(item, default_variables, all_variables) for item in data_copy]
+        elif isinstance(data_copy, str):
             try:
-                template = jinja_env.from_string(data)
+                template = jinja_env.from_string(data_copy)
                 temp_rendered = template.render(dict_variables)
             except TemplateSyntaxError as e:
                 log.warning(
@@ -81,13 +83,10 @@ class Util:
                 evaluated_body = html.unescape(evaluated_body.replace("'", '"'))
                 literal_eval_body = ast.literal_eval(evaluated_body)
             except Exception as e:
-                # log.debug(
-                # f"Error evaluating body: {e}, \nbody: {temp_rendered}",
-                # )
                 pass
             else:
                 if isinstance(literal_eval_body, (dict, list)):
                     return literal_eval_body
             return evaluated_body
         else:
-            return data
+            return data_copy
