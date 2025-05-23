@@ -15,6 +15,7 @@ COPY requirements.txt .
 RUN PYTHONUSERBASE=/install pip install --user -r requirements.txt
 
 
+
 FROM base AS dev
 
 # PYTHONUSERBASE is used to compute the path of the user site-packages
@@ -30,6 +31,25 @@ RUN pip install -r requirements-dev.txt
 COPY . ./
 
 ENTRYPOINT watchmedo auto-restart --recursive --pattern="*.py" --directory="." -- python -m ivrflow
+
+
+
+FROM python:3.12.3-slim AS config
+
+# set the working directory in the container
+WORKDIR /app
+
+# copy the content of the local src directory to the working directory
+COPY . ./
+
+# copy the dependencies downloaded
+COPY --from=base /install /usr/local
+
+# install watchmedo
+RUN pip install --no-cache-dir watchdog
+
+ENTRYPOINT watchmedo auto-restart --recursive --pattern="*.yaml" --directory="/data/flows" -- python -m ivrflow
+
 
 
 FROM python:3.12.3-slim AS runtime
