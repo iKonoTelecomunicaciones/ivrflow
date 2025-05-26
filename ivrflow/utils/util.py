@@ -4,6 +4,7 @@ import html
 import traceback
 from logging import getLogger
 
+import jq
 from jinja2 import TemplateSyntaxError, UndefinedError
 from mautrix.util.logging import TraceLogger
 
@@ -90,3 +91,30 @@ class Util:
             return evaluated_body
         else:
             return data_copy
+
+    @staticmethod
+    def jq_compile(filter: str, json_data: dict | list) -> dict:
+        """
+        It compiles a jq filter and json data into a jq command.
+
+        Parameters
+        ----------
+        filter : str
+            The jq filter to be applied.
+        json_data : dict | list
+            The JSON data to be filtered.
+
+        Returns
+        -------
+            A dictionary containing the filtered result, error message if any, and status code.
+        """
+
+        try:
+            status = 400
+            compiled = jq.compile(filter)
+            status = 421
+            filtered_result = compiled.input(json_data).all()
+        except Exception as error:
+            return {"result": [], "error": str(error), "status": status}
+
+        return {"result": filtered_result, "error": None, "status": 200}

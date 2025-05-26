@@ -12,3 +12,4 @@ aiohttp-swagger3==0.9.0
 aiohttp-cors==0.7.0
 pytz==2025.2
 num2words==0.5.14
+jq==1.8.0
