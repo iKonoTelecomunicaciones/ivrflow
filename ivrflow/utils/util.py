@@ -2,6 +2,7 @@ import ast
 import copy
 import html
 import traceback
+import uuid
 from logging import getLogger
 
 import jq
@@ -118,3 +119,11 @@ class Util:
             return {"result": [], "error": str(error), "status": status}
 
         return {"result": filtered_result, "error": None, "status": 200}
+
+    @staticmethod
+    def generate_uuid() -> str:
+        """Generate a UUID for use in transactions.
+        Returns:
+            str: The UUID generated.
+        """
+        return uuid.uuid4().hex
