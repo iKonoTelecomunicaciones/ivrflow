@@ -96,12 +96,14 @@ class Util:
     def jq_compile(filter: str, json_data: dict | list) -> dict:
         """
         It compiles a jq filter and json data into a jq command.
+
         Parameters
         ----------
         filter : str
             The jq filter to be applied.
         json_data : dict | list
             The JSON data to be filtered.
+
         Returns
         -------
             A dictionary containing the filtered result, error message if any, and status code.
