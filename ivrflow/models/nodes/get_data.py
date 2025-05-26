@@ -57,5 +57,6 @@ class GetData(Switch):
             max_digits=node.get("max_digits", 255),
             dtmf_input=node.get("dtmf_input"),
             validation=node.get("validation"),
+            validation_attempts=node.get("validation_attempts"),
             cases=[Case(**case) for case in node.get("cases", [])],
         )
