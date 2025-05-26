@@ -60,10 +60,11 @@ class ManagementAPI:
             cors.add(route)
             if route.method in ["post", "POST"]:
                 route_info: Dict = route.get_info()
-                swagger.add_options(
-                    path=route_info.get("path") or route_info.get("formatter"),
-                    handler=self.options,
-                )
+                if route_info.get("path") not in self._get_registered_options_paths():
+                    swagger.add_options(
+                        path=route_info.get("path") or route_info.get("formatter"),
+                        handler=self.options,
+                    )
 
     @property
     def _acao_headers(self) -> dict[str, str]:
@@ -79,3 +80,10 @@ class ManagementAPI:
 
     async def options(self, _: web.Request):
         return web.Response(status=200, headers=self._headers)
+
+    def _get_registered_options_paths(self) -> set[str]:
+        return {
+            r.get_info().get("path") or r.get_info().get("formatter")
+            for r in self.app.router.routes()
+            if r.method == "OPTIONS"
+        }
