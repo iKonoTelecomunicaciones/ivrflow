@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from json import JSONDecodeError, dumps, loads
 from logging import Logger, getLogger
 from typing import Any, Dict, List
 
@@ -9,7 +8,7 @@ from aiohttp import ClientSession
 
 from ..channel import Channel
 from ..config import Config
-from ..jinja.jinja_template import jinja_env
+from ..utils import Util
 
 
 def convert_to_bool(item) -> Dict | List | str:
@@ -83,43 +82,25 @@ class Base:
     async def run(self):
         pass
 
-    def render_data(self, data: Dict | List | str) -> Dict | List | str:
-        """It takes a dictionary or list, converts it to a string,
-        and then uses Jinja to render the string
+    def render_data(self, data: dict | list | str) -> dict | list | str:
+        """It renders the data using the default variables and the room variables.
 
         Parameters
         ----------
-        data : Dict | List
+        data : Any
             The data to be rendered.
 
         Returns
         -------
-            A dictionary or list.
+            The rendered data, which can be a dictionary, list, or string.
 
         """
 
-        if isinstance(data, str):
-            data_template = jinja_env.from_string(data)
-        else:
-            try:
-                data_template = jinja_env.from_string(dumps(data))
-            except Exception as e:
-                self.log.exception(e)
-                return
-
-        copy_variables = {**self.default_variables, **self.channel._variables}
-
-        try:
-            data = loads(data_template.render(**copy_variables))
-            data = convert_to_bool(data)
-            return data
-        except JSONDecodeError:
-            data = data_template.render(**copy_variables)
-            return convert_to_bool(data)
-        except KeyError:
-            data = loads(data_template.render())
-            data = convert_to_bool(data)
-            return data
+        return Util.render_data(
+            data=data,
+            default_variables=self.default_variables,
+            all_variables=self.channel._variables,
+        )
 
     def get_o_connection(self) -> str:
         """It returns the ID of the next node to be executed.
