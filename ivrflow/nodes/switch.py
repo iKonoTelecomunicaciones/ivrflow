@@ -132,7 +132,7 @@ class Switch(Base):
             )
 
         if case_o_connection is None or case_o_connection in ["finish", ""]:
-            case_o_connection = await self.get_o_connection()
+            case_o_connection = self.get_o_connection()
 
         return case_o_connection
 
@@ -168,7 +168,7 @@ class Switch(Base):
             return o_connection
 
         if case_o_connection is None or case_o_connection in ["finish", ""]:
-            case_o_connection = await self.get_o_connection()
+            case_o_connection = self.get_o_connection()
 
         return case_o_connection
 
