@@ -27,6 +27,7 @@ from .nodes import (
     SetCallerID,
     SetMusic,
     SetVariable,
+    SetVars,
     Subroutine,
     Switch,
     Verbose,
@@ -54,6 +55,7 @@ Node = Union[
     Switch,
     Verbose,
     NoOp,
+    SetVars,
 ]
 
 
@@ -273,6 +275,12 @@ class Flow:
             node_initialized = NoOp(
                 no_op_content=node_data,
                 default_variables=self.flow_variables,
+                channel=channel,
+            )
+        elif node_type == NodeType.set_vars:
+            node_initialized = SetVars(
+                default_variables=self.flow_variables,
+                set_vars_content=node_data,
                 channel=channel,
             )
         else:

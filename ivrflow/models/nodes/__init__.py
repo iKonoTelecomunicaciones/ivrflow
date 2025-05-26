@@ -15,6 +15,7 @@ from .record import Record
 from .set_callerid import SetCallerID
 from .set_music import SetMusic
 from .set_variable import SetVariable
+from .set_vars import SetVars
 from .subroutine import Subroutine
 from .switch import Case, Switch
 from .verbose import Verbose

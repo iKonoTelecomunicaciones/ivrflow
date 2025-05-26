@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from logging import getLogger
-from typing import Any, Dict, cast
+from typing import Any, Dict, List, cast
 
 from mautrix.util.logging import TraceLogger
 
@@ -120,6 +120,7 @@ class Channel(DBChannel):
             None
 
         """
+
         if not variable_id:
             return
 
@@ -164,3 +165,42 @@ class Channel(DBChannel):
         self.state = state
         await self.update()
         self._add_to_cache()
+
+    async def del_variables(self, variables: List = []) -> None:
+        """This function delete the variables in the channel
+
+        Parameters
+        ----------
+            variables: List
+                The variables to delete.
+        """
+        for variable in variables:
+            await self.del_variable(variable_id=variable)
+
+    async def del_variable(self, variable_id: str) -> None:
+        """The function delete a variable in either the channel and updates the corresponding JSON data.
+
+        Parameters
+        ----------
+        variable_id : str
+            The `variable_id` parameter is a string that represents the identifier of the variable you want to set.
+        """
+        if not variable_id:
+            return
+
+        if not self._variables:
+            self.log.debug(f"Variables in the channel {self.channel_uniqueid} are empty")
+            return
+
+        if variable_id and not self._variables.get(variable_id):
+            self.log.debug(
+                f"Variable [{variable_id}] does not exists in the channel {self.channel_uniqueid}"
+            )
+            return
+
+        content = self._variables.pop(variable_id, None)
+        self.variables = json.dumps(self._variables)
+        self.log.debug(
+            f"Removing variable [{variable_id}] to channel [{self.channel_uniqueid}] :: content [{content}]"
+        )
+        await self.update()
