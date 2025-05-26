@@ -28,6 +28,7 @@ from .nodes import (
     SetCallerID,
     SetMusic,
     SetVariable,
+    SetVars,
     Subroutine,
     Switch,
     Verbose,
@@ -54,6 +55,7 @@ Node = Union[
     Switch,
     Verbose,
     NoOp,
+    SetVars,
 ]
 
 log: Logger = getLogger("ivrflow.models.flow")
@@ -126,6 +128,7 @@ class Flow(SerializableAttrs):
             NodeType.goto_on_exit: GotoOnExit,
             NodeType.subroutine: Subroutine,
             NodeType.no_op: NoOp,
+            NodeType.set_vars: SetVars,
         }
 
         return node_class[node_type].from_dict(node)

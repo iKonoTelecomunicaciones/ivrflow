@@ -21,6 +21,7 @@ from .nodes import (
     SetCallerID,
     SetMusic,
     SetVariable,
+    SetVars,
     Subroutine,
     Switch,
     Verbose,
