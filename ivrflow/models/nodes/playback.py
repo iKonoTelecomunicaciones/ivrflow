@@ -46,12 +46,9 @@ class Playback(FlowObject):
 
     @staticmethod
     def from_dict(node: Dict) -> "Playback":
-        return Playback(
-            id=node.get("id"),
-            type=node.get("type"),
-            file=node.get("file"),
-            middleware=node.get("middleware"),
-            escape_digits=node.get("scape_digits"),
-            sample_offset=node.get("sample_offset"),
-            o_connection=node.get("o_connection"),
-        )
+
+        playback = Playback(id=node.get("id"), type=node.get("type"))
+        for key, value in node.items():
+            if key in playback.__dict__:
+                playback.__dict__[key] = value
+        return playback
