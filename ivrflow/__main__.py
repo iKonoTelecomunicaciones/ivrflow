@@ -188,6 +188,8 @@ class IVRFlow(AGIView):
             await channel.update_ivr(node_id="start")
             return
 
+        log.warning(f"-------> Executing Node: [{node.id}]")
+
         log.debug(
             f"The [channel: {channel.channel_uniqueid}] [node: {node.id}] [state: {channel.state}]"
         )
@@ -195,6 +197,9 @@ class IVRFlow(AGIView):
         try:
             await node.run()
         except AGIAppError as e:
+            if str(e.message) == "b'Error executing application, or hangup.'":
+                log.warning(f"Hangup detected [node: {node.id}]")
+                return
             log.error(f"Error in node {node.id}", exc_info=e)
             return
 

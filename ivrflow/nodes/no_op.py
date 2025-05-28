@@ -35,4 +35,10 @@ class NoOp(Base):
         if self.text:
             self.log.info(f"Channel {self.channel.channel_uniqueid} log message: {self.text}")
 
+        if not self.text or self.text == ".":
+            self.log.info(
+                f"Channel {self.channel.channel_uniqueid} "
+                f"all variables: {self.channel._variables | self.default_variables}"
+            )
+
         await self._update_node()

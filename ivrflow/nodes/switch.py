@@ -63,7 +63,7 @@ class Switch(Base):
 
         try:
             self.log.info(
-                f"Get validation of input [{self.id}] for room [{self.channel.channel_uniqueid}]"
+                f"Get validation of input [{self.id}] for channel [{self.channel.channel_uniqueid}]"
             )
             result = self.validation
         except Exception as e:
@@ -107,7 +107,7 @@ class Switch(Base):
                 )
                 continue
 
-            # Load variables defined in the case into the room
+            # Load variables defined in the case into the channel
             if switch_case.variables:
                 await self.load_variables(switch_case.variables)
 
@@ -117,7 +117,7 @@ class Switch(Base):
                 f"The case [{case_o_connection}] has been obtained in the input node [{self.id}]"
             )
 
-            # Delete the validation attempts of the room
+            # Delete the validation attempts of the channel
             if (
                 self.validation_attempts
                 and self.channel.channel_uniqueid in self.VALIDATION_ATTEMPTS_BY_CHANNEL

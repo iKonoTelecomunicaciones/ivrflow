@@ -58,7 +58,8 @@ class TTSMiddleware(Base):
 
         data = FormData()
         for param in self.data:
-            data.add_field(name=param, value=extended_data.get(param))
+            if extended_data.get(param):
+                data.add_field(name=param, value=extended_data.get(param))
 
         request_body["data"] = data
 

@@ -83,7 +83,7 @@ class Base:
         pass
 
     def render_data(self, data: dict | list | str) -> dict | list | str:
-        """It renders the data using the default variables and the room variables.
+        """It renders the data using the default variables and the channel variables.
 
         Parameters
         ----------
