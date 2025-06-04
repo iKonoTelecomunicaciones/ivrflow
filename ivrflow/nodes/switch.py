@@ -63,7 +63,7 @@ class Switch(Base):
 
         try:
             self.log.info(
-                f"Get validation of input [{self.id}] for room [{self.channel.channel_uniqueid}]"
+                f"Get validation of input [{self.id}] for channel [{self.channel.channel_uniqueid}]"
             )
             result = self.validation
         except Exception as e:
@@ -107,7 +107,7 @@ class Switch(Base):
                 )
                 continue
 
-            # Load variables defined in the case into the room
+            # Load variables defined in the case into the channel
             if switch_case.variables:
                 await self.load_variables(switch_case.variables)
 
@@ -117,7 +117,7 @@ class Switch(Base):
                 f"The case [{case_o_connection}] has been obtained in the input node [{self.id}]"
             )
 
-            # Delete the validation attempts of the room
+            # Delete the validation attempts of the channel
             if (
                 self.validation_attempts
                 and self.channel.channel_uniqueid in self.VALIDATION_ATTEMPTS_BY_CHANNEL
@@ -132,7 +132,7 @@ class Switch(Base):
             )
 
         if case_o_connection is None or case_o_connection in ["finish", ""]:
-            case_o_connection = await self.get_o_connection()
+            case_o_connection = self.get_o_connection()
 
         return case_o_connection
 
@@ -168,7 +168,7 @@ class Switch(Base):
             return o_connection
 
         if case_o_connection is None or case_o_connection in ["finish", ""]:
-            case_o_connection = await self.get_o_connection()
+            case_o_connection = self.get_o_connection()
 
         return case_o_connection
 
@@ -212,10 +212,15 @@ class Switch(Base):
         channel_validation_attempts = self.VALIDATION_ATTEMPTS_BY_CHANNEL.get(
             self.channel.channel_uniqueid, 1
         )
+
         if self.validation_attempts and channel_validation_attempts >= self.validation_attempts:
             if self.channel.channel_uniqueid in self.VALIDATION_ATTEMPTS_BY_CHANNEL:
                 del self.VALIDATION_ATTEMPTS_BY_CHANNEL[self.channel.channel_uniqueid]
             case_to_be_used = "attempt_exceeded"
+            self.log.critical(
+                f"Validation attempts {channel_validation_attempts} of {self.validation_attempts} "
+                f"for channel {self.channel.channel_uniqueid} set to {case_to_be_used}"
+            )
         else:
             case_to_be_used = "default"
 

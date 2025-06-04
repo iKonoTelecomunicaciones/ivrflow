@@ -49,11 +49,13 @@ class GetData(Switch):
             )
             await asr_middleware.run(middleware_extended_data)
         else:
-            variable = await self.asterisk_conn.agi.get_data(
+            response = await self.asterisk_conn.agi.get_data(
                 filename=self.file,
                 timeout=self.timeout,
                 max_digits=self.max_digits,
             )
-            await self.channel.set_variable(self.content.dtmf_input, variable.result)
+            value, timeout = response.result, response.info == "(timeout)"
+            result = "timeout" if timeout else value
+            await self.channel.set_variable(self.content.dtmf_input, result)
 
         await super().run()

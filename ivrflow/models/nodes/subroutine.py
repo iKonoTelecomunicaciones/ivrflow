@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Dict
+
 from attr import dataclass, ib
 
 from ..flow_object import FlowObject
@@ -23,10 +25,10 @@ class Subroutine(FlowObject):
     o_connection: str = ib(default=None)
 
     @staticmethod
-    def from_dict(node: dict) -> Subroutine:
-        return Subroutine(
-            id=node.get("id"),
-            type=node.get("type"),
-            go_sub=node.get("go_sub"),
-            o_connection=node.get("o_connection"),
-        )
+    def from_dict(node: Dict) -> "Subroutine":
+
+        subroutine = Subroutine(id=node.get("id"), type=node.get("type"))
+        for key, value in node.items():
+            if key in subroutine.__dict__:
+                subroutine.__dict__[key] = value
+        return subroutine
