@@ -64,3 +64,8 @@ class Flow(SerializableAttrs):
     async def update(self) -> None:
         q = "UPDATE flow SET name=$1, flow=$2 WHERE id=$3"
         await self.db.execute(q, *self.values, self.id)
+
+    @classmethod
+    async def check_exists(cls, id: int) -> bool:
+        q = "SELECT EXISTS(SELECT 1 FROM flow WHERE id=$1)"
+        return await cls.db.fetchval(q, id)

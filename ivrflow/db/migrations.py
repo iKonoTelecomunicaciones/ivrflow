@@ -22,12 +22,12 @@ async def upgrade_v1(conn: Connection) -> None:
 
 
 @upgrade_table.register(description="Add stack field to channel table")
-async def upgrade_v3(conn: Connection) -> None:
+async def upgrade_v2(conn: Connection) -> None:
     await conn.execute("ALTER TABLE channel ADD COLUMN stack JSONB NOT NULL DEFAULT '{}'::jsonb")
 
 
 @upgrade_table.register(description="Add flow table")
-async def upgrade_v4(conn: Connection) -> None:
+async def upgrade_v3(conn: Connection) -> None:
     await conn.execute(
         """CREATE TABLE flow (
             id          SERIAL PRIMARY KEY,
@@ -35,3 +35,34 @@ async def upgrade_v4(conn: Connection) -> None:
             flow        JSONB DEFAULT '{}'::jsonb
         )"""
     )
+
+
+@upgrade_table.register(description="Add flow_vars column to flow table and add new table module")
+async def upgrade_v4(conn: Connection) -> None:
+
+    # Add flow_vars column to flow table
+    await conn.execute("ALTER TABLE flow ADD COLUMN flow_vars JSONB DEFAULT '{}'::jsonb")
+
+    # Create module table
+    await conn.execute(
+        """CREATE TABLE module (
+           id          SERIAL PRIMARY KEY,
+           flow_id     INT NOT NULL,
+           name        TEXT NOT NULL,
+           nodes       JSONB DEFAULT '[]'::jsonb,
+           position    JSONB DEFAULT '{}'::jsonb
+       )"""
+    )
+
+    # Add foreign key to module table
+    await conn.execute(
+        "ALTER TABLE module ADD CONSTRAINT fk_module_flow FOREIGN KEY (flow_id) REFERENCES flow(id)"
+    )
+
+    # Add unique constraint to module table
+    await conn.execute(
+        "ALTER TABLE module ADD CONSTRAINT idx_unique_module_name_flow_id UNIQUE (name, flow_id)"
+    )
+
+    # Create index on module table
+    await conn.execute("CREATE INDEX idx_module_flow ON module (flow_id)")

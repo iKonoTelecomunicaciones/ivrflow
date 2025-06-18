@@ -1,6 +1,6 @@
 components:
   schemas:
-    # Base schemas
+    # Generic schemas
     BaseResponseDetailMessage:
       type: object
       properties:
@@ -9,8 +9,7 @@ components:
           properties:
             message:
               type: string
-              example: "Default message"
-    # End of base schemas
+    # End of generic schemas
 
     GetEmailServersOk:
       type: object
@@ -139,6 +138,57 @@ components:
         detail:
           message: Template is required
 
+    GetModuleOk:
+      type: object
+      properties:
+        id:
+          type: integer
+        flow_id:
+          type: integer
+        name:
+          type: string
+        nodes:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        position:
+          type: object
+
+    GetAllModulesOk:
+      type: object
+      properties:
+        modules:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              id:
+                type: integer
+              flow_id:
+                type: integer
+              nodes:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+              position:
+                type: object
+                additionalProperties: true
+    CreateUpdateModuleOk:
+      type: object
+      properties:
+        detail:
+          type: object
+          properties:
+            message:
+              type: string
+            data:
+              type: object
+              properties:
+                module_id:
+                  type: integer
+
     # Error schemas
     ErrorReadingData:
       allOf:
@@ -156,6 +206,18 @@ components:
 
 
   responses:
+    # Generic responses
+    InternalServerError:
+      description: Server error.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/BaseResponseDetailMessage"
+          example:
+            detail:
+              message: "error_message"
+    # End of generic responses
+
     GetEmailServersSuccess:
       description: Get email servers success.
       content:
@@ -283,3 +345,215 @@ components:
               value:
                 detail:
                   message: Template is required
+
+    GetModuleSuccess:
+      description: Get Module success.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/GetModuleOk"
+              - $ref: "#/components/schemas/GetAllModulesOk"
+          examples:
+            GetModule:
+              value:
+                id: 1
+                flow_id: 1
+                name: "Main"
+                nodes:
+                  - id: start
+                    type: get_full_variable
+                    variables:
+                      customer_phone: "57${CALLERID(num)}"
+                    o_connection: goto_ivr
+                position:
+                  x: 632.8705383300783
+                  y: 357.11742401123036
+                  scale: 0.4092324994498387
+            GetAllModules:
+              value:
+                modules:
+                  Main:
+                    id: 1
+                    flow_id: 1
+                    nodes:
+                        - id: start
+                          type: get_full_variable
+                          variables:
+                            customer_phone: "57${CALLERID(num)}"
+                          o_connection: goto_ivr
+                    position:
+                      x: 632.8705383300783
+                      y: 357.11742401123036
+                      scale: 0.4092324994498387
+                  Second:
+                    id: 2
+                    flow_id: 1
+                    nodes:
+                      nodes:
+                        - id: goto_ivr
+                          type: goto_on_exit
+                          context: "Menu-Principal"
+                          extension: "s-Menu-Principal"
+                          priority: "Begin"
+                    position:
+                      x: 632.8705383300783
+                      y: 357.11742401123036
+                      scale: 0.4092324994498387
+    GetModuleNotFound:
+      description: Get module not found.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/BaseResponseDetailMessage"
+          examples:
+            FlowNotFound:
+              value:
+                detail:
+                  message: Flow with ID 1 not found in the database
+            GetModuleByIDNotFound:
+              value:
+                detail:
+                  message: Module with ID 1 not found
+            GetModuleByNameNotFound:
+              value:
+                detail:
+                  message: Module with name 'module_name' not found
+    GetModuleBadRequest:
+      description: Get module bad request.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/BaseResponseDetailMessage"
+          example:
+            detail:
+              message: Invalid or missing flow ID
+    CreateModuleNotFound:
+      description: Post module not found.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/BaseResponseDetailMessage"
+          example:
+            detail:
+              message: Flow with ID 1 not found in the database
+    CreateModuleBadRequest:
+      description: Post module bad request.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/BaseResponseDetailMessage"
+          examples:
+            BodyNotJson:
+              value:
+                detail:
+                  message: Request body is not JSON.
+            InvalidFlowID:
+              value:
+                detail:
+                  message: Invalid or missing flow ID
+            ModuleNameAlreadyExists:
+              value:
+                detail:
+                  message: Module with name 'module_name' already exists in flow_id 1
+    CreateModuleSuccess:
+      description: Post module success.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CreateUpdateModuleOk"
+          example:
+            detail:
+              message: Module created successfully
+              data:
+                module_id: 1
+    UpdateModuleNotFound:
+      description: Update module not found.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/BaseResponseDetailMessage"
+          examples:
+            FlowNotFound:
+              value:
+                detail:
+                  message: Flow with ID 1 not found in the database
+            ModuleNotFound:
+              value:
+                detail:
+                  message: Module with ID '1' not found in flow_id '1'
+    UpdateModuleBadRequest:
+      description: Update module bad request.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/BaseResponseDetailMessage"
+          examples:
+            BodyNotJson:
+              value:
+                detail:
+                  message: Request body is not JSON.
+            InvalidType:
+              value:
+                detail:
+                  message: Flow ID and module ID must be valid integers
+            EmptyBody:
+              value:
+                detail:
+                  message: At least one of the parameters name, nodes or position is required
+            ModuleNameAlreadyExists:
+              value:
+                detail:
+                  message: Module with name 'module_name' already exists in flow_id 1
+    UpdateModuleSuccess:
+      description: Update module success.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CreateUpdateModuleOk"
+          example:
+            detail:
+              message: Module updated successfully
+              data:
+                module_id: 1
+    DeleteModuleNotFound:
+      description: Delete module not found.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/BaseResponseDetailMessage"
+          examples:
+            FlowNotFound:
+              value:
+                detail:
+                  message: Flow with ID 1 not found in the database
+            ModuleNotFound:
+              value:
+                detail:
+                  message: Module with ID 1 not found in flow_id 1
+    DeleteModuleBadRequest:
+      description: Delete module bad request.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/BaseResponseDetailMessage"
+          example:
+            detail:
+              message: Flow ID and module ID must be valid integers
+    DeleteModuleSuccess:
+      description: Delete module success.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/BaseResponseDetailMessage"
+          example:
+            detail:
+              message: Module deleted successfully
