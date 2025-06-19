@@ -116,6 +116,11 @@ async def update_module(request: web.Request) -> web.Response:
         module_id = int(request.match_info["module_id"])
         data: dict = await request.json()
 
+        if not data.get("name") and not data.get("nodes") and not data.get("position"):
+            return resp.bad_request(
+                "At least one of the parameters name, nodes or position is required", uuid
+            )
+
         if not await DBFlow.check_exists(flow_id):
             return resp.not_found(f"Flow with ID '{flow_id}' not found in the database", uuid)
 
@@ -130,11 +135,6 @@ async def update_module(request: web.Request) -> web.Response:
 
     if not module:
         return resp.not_found(f"Module with ID '{module_id}' not found in flow_id '{flow_id}'")
-
-    if not data.get("name") and not data.get("nodes") and not data.get("position"):
-        return resp.bad_request(
-            "At least one of the parameters name, nodes or position is required", uuid
-        )
 
     new_name = data.get("name")
     if new_name and new_name != module.name:
