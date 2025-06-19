@@ -2,7 +2,7 @@ from logging import Logger, getLogger
 
 from ..util import parse_template_indent
 
-log: Logger = getLogger("menuflow.docs.module")
+log: Logger = getLogger("ivrflow.docs.module")
 
 
 template_nodes = """

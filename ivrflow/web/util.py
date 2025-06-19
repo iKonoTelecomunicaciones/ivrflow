@@ -2,7 +2,7 @@ import uuid
 from logging import Logger, getLogger
 from textwrap import indent
 
-log: Logger = getLogger("menuflow.web.util")
+log: Logger = getLogger("ivrflow.web.util")
 
 
 def docstring(doc: str):

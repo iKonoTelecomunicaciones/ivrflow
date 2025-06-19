@@ -456,6 +456,10 @@ components:
               value:
                 detail:
                   message: Invalid or missing flow ID
+            ParameterRequired:
+              value:
+                detail:
+                  message: Parameter 'name' is required.
             ModuleNameAlreadyExists:
               value:
                 detail:
