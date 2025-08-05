@@ -566,19 +566,13 @@ components:
       content:
         application/json:
           schema:
-            type: array
-            items:
-              type: object
-              properties:
-                id:
-                  type: integer
-                name:
-                  type: string
+            $ref: "#/components/schemas/GetAllModulesOk"
           example:
-            - id: 1
-              name: Main
-            - id: 2
-              name: Second
+            modules:
+              - id: 1
+                name: Main
+              - id: 2
+                name: Second
     GetListModulesBadRequest:
       description: Get list modules bad request.
       content:

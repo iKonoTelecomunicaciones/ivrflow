@@ -220,7 +220,7 @@ async def get_list_modules(request: web.Request) -> web.Response:
         return resp.internal_error(e, uuid, log)
 
     try:
-        modules = await DBModule.get_by_fields(flow_id, fields)
+        modules = {"modules": await DBModule.get_by_fields(flow_id, fields)}
     except Exception as e:
         return resp.internal_error(e, uuid, log)
 
