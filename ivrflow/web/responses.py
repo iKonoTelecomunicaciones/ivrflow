@@ -22,13 +22,13 @@ class _Response:
         data: dict | None = None,
     ) -> web.Response:
 
-        log.info(f"({uuid}) -> {message}" if uuid else message)
-
         if message:
+            log.info(f"({uuid}) -> {message}" if uuid else message)
             response = {"detail": {"message": message}}
             if data:
                 response["detail"]["data"] = data
         else:
+            log.info(f"({uuid}) -> {data}" if uuid else data)
             response = data
 
         return web.json_response(response, status=status)

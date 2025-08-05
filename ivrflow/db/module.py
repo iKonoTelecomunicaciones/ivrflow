@@ -17,6 +17,7 @@ log: Logger = getLogger("ivrflow.db.module")
 class Module(SerializableAttrs):
     db: ClassVar[Database] = fake_db
     _columns: ClassVar[str] = "flow_id, name, nodes, position"
+    _json_columns: ClassVar[str] = "nodes, position"
 
     id: int = ib(default=None)
     flow_id: int = ib(factory=int)
@@ -24,9 +25,9 @@ class Module(SerializableAttrs):
     nodes: list = ib(factory=list)
     position: dict = ib(factory=dict)
 
-    def _get_value(self, attr: str, json_obj: bool = False) -> str:
-        value = getattr(self, attr)
-        return json.dumps(value) if json_obj else value
+    @property
+    def values(self) -> tuple[str, str, str]:
+        return self.name, json.dumps(self.nodes), json.dumps(self.position)
 
     @classmethod
     def _from_row(cls, row: Record) -> Module | None:
@@ -42,6 +43,19 @@ class Module(SerializableAttrs):
         )
 
     @classmethod
+    def _from_row_by_fields(cls, row: Record, fields: list[str]) -> dict:
+        kwargs = {}
+
+        for field in fields:
+            if field in row:
+                if field in cls._json_columns:
+                    if row[field]:
+                        kwargs[field] = json.loads(row[field])
+                else:
+                    kwargs[field] = row[field]
+        return kwargs
+
+    @classmethod
     async def get_by_id(cls, id: int, flow_id: int) -> Module | None:
         q = f"SELECT id, {cls._columns} FROM module WHERE id=$1 AND flow_id=$2"
         row = await cls.db.fetchrow(q, id, flow_id)
@@ -54,6 +68,13 @@ class Module(SerializableAttrs):
         row = await cls.db.fetchrow(q, name, flow_id)
 
         return cls._from_row(row) if row else None
+
+    @classmethod
+    async def get_by_fields(cls, flow_id: int, fields: list) -> list:
+        q = f"SELECT {', '.join(fields)} FROM module WHERE flow_id=$1"
+        rows = await cls.db.fetch(q, flow_id)
+
+        return [cls._from_row_by_fields(row, fields) for row in rows] if rows else []
 
     @classmethod
     async def all(cls, flow_id: int) -> list:
@@ -73,23 +94,11 @@ class Module(SerializableAttrs):
 
     async def insert(self) -> int:
         q = "INSERT INTO module (flow_id, name, nodes, position) VALUES ($1, $2, $3, $4) RETURNING id"
-        return await self.db.fetchval(
-            q,
-            self._get_value("flow_id"),
-            self._get_value("name"),
-            self._get_value("nodes", True),
-            self._get_value("position", True),
-        )
+        return await self.db.fetchval(q, self.flow_id, *self.values)
 
     async def update(self) -> None:
         q = "UPDATE module SET name=$2, nodes=$3, position=$4 WHERE id=$1"
-        await self.db.execute(
-            q,
-            self.id,
-            self._get_value("name"),
-            self._get_value("nodes", True),
-            self._get_value("position", True),
-        )
+        await self.db.execute(q, self.id, *self.values)
 
     async def delete(self) -> None:
         q = "DELETE FROM module WHERE id=$1 AND flow_id=$2"
