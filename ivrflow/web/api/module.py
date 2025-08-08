@@ -8,7 +8,13 @@ from aiohttp import web
 from ...db.flow import Flow as DBFlow
 from ...db.module import Module as DBModule
 from ..base import routes
-from ..docs.module import create_module_doc, delete_module_doc, get_module_doc, update_module_doc
+from ..docs.module import (
+    create_module_doc,
+    delete_module_doc,
+    get_module_doc,
+    get_module_list_doc,
+    update_module_doc,
+)
 from ..responses import resp
 from ..util import docstring, generate_uuid
 
@@ -193,3 +199,29 @@ async def delete_module(request: web.Request) -> web.Response:
     return resp.success_response(
         "Module deleted successfully", uuid, data={"module_id": module_id}
     )
+
+
+@routes.get("/v1/{flow_id}/list_modules", allow_head=False)
+@docstring(get_module_list_doc)
+async def get_module_list(request: web.Request) -> web.Response:
+    uuid = generate_uuid()
+    log.info(f"({uuid}) -> '{request.method}' '{request.path}' Getting module")
+
+    fields = request.query.getall("fields", ["id", "name"])
+
+    try:
+        flow_id = int(request.match_info["flow_id"])
+
+        if not await DBFlow.check_exists(flow_id):
+            return resp.not_found(f"Flow with ID {flow_id} not found in the database", uuid)
+    except (KeyError, ValueError):
+        return resp.bad_request("Invalid or missing flow ID", uuid)
+    except Exception as e:
+        return resp.internal_error(e, uuid, log)
+
+    try:
+        modules = {"modules": await DBModule.get_by_fields(flow_id, fields)}
+    except Exception as e:
+        return resp.internal_error(e, uuid, log)
+
+    return resp.success_response("", uuid, modules)
