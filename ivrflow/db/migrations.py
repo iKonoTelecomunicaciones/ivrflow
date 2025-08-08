@@ -41,7 +41,9 @@ async def upgrade_v3(conn: Connection) -> None:
 async def upgrade_v4(conn: Connection) -> None:
 
     # Add flow_vars column to flow table
-    await conn.execute("ALTER TABLE flow ADD COLUMN flow_vars JSONB DEFAULT '{}'::jsonb")
+    await conn.execute(
+        "ALTER TABLE flow ADD COLUMN IF NOT EXISTS flow_vars JSONB DEFAULT '{}'::jsonb"
+    )
 
     # Create module table
     await conn.execute(
@@ -66,3 +68,10 @@ async def upgrade_v4(conn: Connection) -> None:
 
     # Create index on module table
     await conn.execute("CREATE INDEX idx_module_flow ON module (flow_id)")
+
+
+@upgrade_table.register(description="Drop flow column from flow table")
+async def upgrade_v5(conn: Connection) -> None:
+
+    # Drop flow column from flow table
+    await conn.execute("ALTER TABLE flow DROP COLUMN IF EXISTS flow")

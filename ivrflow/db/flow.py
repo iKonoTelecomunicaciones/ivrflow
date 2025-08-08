@@ -15,17 +15,17 @@ class Flow(SerializableAttrs):
 
     id: int = ib(default=None)
     name: str = ib(factory=str)
-    flow: Dict[str, Any] = ib(factory=dict)
+    flow_vars: dict = ib(factory=dict)
 
-    __columns = "id, name, flow"
+    __columns = "id, name, flow_vars"
 
     @property
     def values(self) -> Dict[str, Any]:
-        return (self.name, json.dumps(self.flow))
+        return (self.name, json.dumps(self.flow_vars))
 
     @classmethod
     def _from_row(cls, row: Record) -> Optional["Flow"]:
-        return cls(id=row["id"], name=row["name"], flow=json.loads(row["flow"]))
+        return cls(id=row["id"], name=row["name"], flow_vars=json.loads(row["flow_vars"]))
 
     @classmethod
     async def all(cls) -> list[Dict]:
@@ -57,12 +57,11 @@ class Flow(SerializableAttrs):
         return cls._from_row(row)
 
     async def insert(self) -> int:
-        q = "INSERT INTO flow (name, flow) VALUES ($1, $2)"
-        await self.db.execute(q, *self.values)
-        return await self.db.fetchval("SELECT MAX(id) FROM flow")
+        q = "INSERT INTO flow (name, flow_vars) VALUES ($1, $2) RETURNING id"
+        return await self.db.fetchval(q, *self.values)
 
     async def update(self) -> None:
-        q = "UPDATE flow SET name=$1, flow=$2 WHERE id=$3"
+        q = "UPDATE flow SET name=$1, flow_vars=$2 WHERE id=$3"
         await self.db.execute(q, *self.values, self.id)
 
     @classmethod

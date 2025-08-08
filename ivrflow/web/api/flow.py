@@ -1,150 +1,87 @@
 from __future__ import annotations
 
-from http import HTTPStatus
 from json import JSONDecodeError
+from logging import Logger, getLogger
 from typing import Dict
 
 from aiohttp import web
 
 from ...db.flow import Flow as DBFlow
 from ..base import routes
-from ..responses import json_response
+from ..docs.flow import create_or_update_flow_doc, get_flow_doc
+from ..responses import resp
+from ..util import docstring, generate_uuid
+
+log: Logger = getLogger("ivrflow.api.flow")
 
 
 # Update or create new flow
 @routes.put("/v1/flow")
+@docstring(create_or_update_flow_doc)
 async def create_or_update_flow(request: web.Request) -> web.Response:
-    """
-    ---
-    summary: Creates a new flow or update it if exists.
-    tags:
-        - Flow
+    uuid = generate_uuid()
+    log.info(f"({uuid}) -> '{request.method}' '{request.path}' Creating or updating flow")
 
-    requestBody:
-        required: false
-        description: A json with `id`, `name` and  `flow` keys.
-                     `id` is the flow ID to update, `flow` is the flow content.
-                     send only `name` and `flow` to create a new flow.
-        content:
-            application/json:
-                schema:
-                    type: object
-                    properties:
-                        id:
-                            type: integer
-                        name:
-                            type: string
-                        flow:
-                            type: object
-                    required:
-                        - flow
-                    example:
-                        id: 1
-                        name: "flow_name"
-                        flow:
-                            flow_variables:
-                                var1: "value1"
-                                var2: "value2"
-                            nodes:
-                                - id: play
-                                  type: playback
-                                  file: "vm-extension"
-                                  escape_digits: 0
-                                  sample_offset: 0
-                                  o_connection: next_node
-    responses:
-        '200':
-            $ref: '#/components/responses/CreateUpdateFlowSuccess'
-        '400':
-            $ref: '#/components/responses/CreateUpdateFlowBadRequest'
-    """
     try:
         data: Dict = await request.json()
     except JSONDecodeError:
-        return json_response(HTTPStatus.BAD_REQUEST, "Request body is not JSON.")
+        return resp.bad_request("Request body is not JSON.", uuid)
 
     flow_id = data.get("id")
     name: str = data.get("name")
-    incoming_flow = data.get("flow")
+    flow_vars = data.get("flow_vars")
 
-    if not incoming_flow:
-        return json_response(HTTPStatus.BAD_REQUEST, "Parameter flow is required")
+    try:
+        if flow_id:
+            flow = await DBFlow.get_by_id(flow_id)
+            if not flow:
+                return resp.not_found(f"Flow with ID {flow_id} not found", uuid)
 
-    if flow_id:
-        flow = await DBFlow.get_by_id(flow_id)
-        if not flow:
-            return json_response(HTTPStatus.NOT_FOUND, f"Flow with ID {flow_id} not found")
+            if name:
+                flow.name = name
 
-        if name:
-            flow.name = name
-        flow.flow = incoming_flow
-        await flow.update()
+            if flow_vars:
+                flow.flow_vars = flow_vars
 
-        message = "Flow updated successfully"
-        status = HTTPStatus.OK
-    else:
-        if not name:
-            return json_response(HTTPStatus.BAD_REQUEST, "Parameter name is required")
+            await flow.update()
+        else:
+            if not name:
+                return resp.bad_request("Parameter name is required", uuid)
 
-        flow_exists = await DBFlow.get_by_name(name)
-        if flow_exists:
-            return json_response(HTTPStatus.BAD_REQUEST, f"Flow with name {name} already exists")
+            flow_exists = await DBFlow.get_by_name(name)
+            if flow_exists:
+                return resp.bad_request(f"Flow with name {name} already exists", uuid)
 
-        new_flow = DBFlow(name=name, flow=incoming_flow)
-        flow_id = await new_flow.insert()
-        message = "Flow created successfully"
-        status = HTTPStatus.CREATED
+            new_flow = DBFlow(name=name, flow_vars=flow_vars)
+            flow_id = await new_flow.insert()
 
-    return json_response(status=status, message=message, data={"flow_id": flow_id})
+            return resp.created("Flow created successfully", uuid)
+    except Exception as e:
+        return resp.internal_error(e, uuid, log)
+
+    return resp.success_response("Flow updated successfully", uuid)
 
 
 @routes.get("/v1/flow", allow_head=False)
+@docstring(get_flow_doc)
 async def get_flow(request: web.Request) -> web.Response:
-    """
-    ---
-    summary: Get flow by ID or flow name.
-    tags:
-        - Flow
+    uuid = generate_uuid()
+    log.info(f"({uuid}) -> '{request.method}' '{request.path}' Getting flow")
 
-    parameters:
-        - name: flow_id
-          in: query
-          description: Flow ID to get.
-          schema:
-            type: integer
-          example: 1
-        - name: flow_name
-          in: query
-          description: Flow name to get.
-          schema:
-              type: string
-          example: "flow_name"
-
-    responses:
-        '200':
-            $ref: '#/components/responses/GetFlowSuccess'
-        '404':
-            $ref: '#/components/responses/GetFlowNotFound'
-    """
     flow_id = request.query.get("flow_id")
     flow_name = request.query.get("flow_name")
 
-    if not flow_id and not flow_name:
-        return json_response(
-            status=HTTPStatus.BAD_REQUEST,
-            message="Parameter flow_id or flow_name is required",
-        )
-
-    if flow_id:
-        flow = await DBFlow.get_by_id(int(flow_id))
-        not_found_message = f"Flow with ID {flow_id} not found"
+    if flow_id or flow_name:
+        if flow_id:
+            data = await DBFlow.get_by_id(int(flow_id))
+            if not data:
+                return resp.not_found(f"Flow with ID {flow_id} not found")
+        else:
+            data = await DBFlow.get_by_name(flow_name)
+            if not data:
+                return resp.not_found(f"Flow with name {flow_name} not found")
+        data = data.serialize()
     else:
-        flow = await DBFlow.get_by_name(flow_name)
-        not_found_message = f"Flow with name {flow_name} not found"
+        data = {"flows": [{flow.pop("name"): flow for flow in await DBFlow.all()}]}
 
-    if not flow:
-        return json_response(status=HTTPStatus.NOT_FOUND, message=not_found_message)
-
-    data = flow.serialize()
-
-    return json_response(status=HTTPStatus.OK, data=data)
+    return resp.success_response("", uuid, data=data)
