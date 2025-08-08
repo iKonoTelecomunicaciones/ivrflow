@@ -11,24 +11,6 @@ from ..config import Config
 from ..utils import Util
 
 
-def convert_to_bool(item) -> Dict | List | str:
-    if isinstance(item, dict):
-        for k, v in item.items():
-            item[k] = convert_to_bool(v)
-        return item
-    elif isinstance(item, list):
-        return [convert_to_bool(i) for i in item]
-    elif isinstance(item, str):
-        if item.strip().lower() == "true":
-            return True
-        elif item.strip().lower() == "false":
-            return False
-        else:
-            return item
-    else:
-        return item
-
-
 def convert_to_int(item: Any) -> Dict | List | int:
     if isinstance(item, dict):
         for k, v in item.items():
@@ -44,7 +26,7 @@ def convert_to_int(item: Any) -> Dict | List | int:
 
 def safe_data_convertion(item: Any, _bool: bool = True, _int: bool = True) -> Any:
     if _bool:
-        item = convert_to_bool(item)
+        item = Util.convert_to_bool(item)
 
     if _int:
         item = convert_to_int(item)

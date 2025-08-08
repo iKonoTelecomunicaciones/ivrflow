@@ -55,7 +55,7 @@ async def get_id_middlewares(request: web.Request) -> web.Response:
 
 
 @routes.post("/v1/mis/check_template")
-async def check_template_2(request: web.Request) -> web.Response:
+async def check_template(request: web.Request) -> web.Response:
     """
     ---
     summary: Check jinja syntax
