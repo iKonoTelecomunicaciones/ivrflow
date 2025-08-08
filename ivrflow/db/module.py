@@ -43,17 +43,13 @@ class Module(SerializableAttrs):
         )
 
     @classmethod
-    def _from_row_by_fields(cls, row: Record, fields: list[str]) -> dict:
-        kwargs = {}
-
-        for field in fields:
-            if field in row:
-                if field in cls._json_columns:
-                    if row[field]:
-                        kwargs[field] = json.loads(row[field])
-                else:
-                    kwargs[field] = row[field]
-        return kwargs
+    def _to_dict(cls, row: Record, json_columns: list[str] = None) -> dict:
+        data = dict(zip(row.keys(), row))
+        if json_columns:
+            for column in json_columns:
+                if column in data:
+                    data[column] = json.loads(data[column])
+        return data
 
     @classmethod
     async def get_by_id(cls, id: int, flow_id: int) -> Module | None:
@@ -74,7 +70,7 @@ class Module(SerializableAttrs):
         q = f"SELECT {', '.join(fields)} FROM module WHERE flow_id=$1"
         rows = await cls.db.fetch(q, flow_id)
 
-        return [cls._from_row_by_fields(row, fields) for row in rows] if rows else []
+        return [cls._to_dict(row, cls._json_columns.split(",")) for row in rows] if rows else []
 
     @classmethod
     async def all(cls, flow_id: int) -> list:
@@ -103,3 +99,17 @@ class Module(SerializableAttrs):
     async def delete(self) -> None:
         q = "DELETE FROM module WHERE id=$1 AND flow_id=$2"
         await self.db.execute(q, self.id, self.flow_id)
+
+    @classmethod
+    async def get_node_by_id(
+        cls, flow_id: int, node_id: str, module_name: bool = True
+    ) -> dict | None:
+        q = "SELECT m.name AS module_name, " if module_name else "SELECT "
+
+        q += """node AS node FROM module m
+        CROSS JOIN LATERAL jsonb_array_elements(m.nodes) AS node
+        WHERE m.flow_id = $1 AND node->>'id' = $2
+        """
+        row = await cls.db.fetchrow(q, flow_id, node_id)
+
+        return cls._to_dict(row, ["node"]) if row else None

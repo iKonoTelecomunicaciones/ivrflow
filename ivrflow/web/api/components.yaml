@@ -190,6 +190,29 @@ components:
               properties:
                 module_id:
                   type: integer
+    GetNodeOk:
+      type: object
+      properties:
+        module_name:
+          type: string
+        node:
+          type: object
+          additionalProperties: true
+      example:
+        module_name: "Main"
+        node:
+          id: "start"
+          type: "get_full_variable"
+          variables:
+            customer_phone: "57${CALLERID(num)}"
+    GetNodeNotFound:
+      type: object
+      properties:
+        detail:
+          type: object
+      example:
+        detail:
+          message: Node with ID 'start' not found in the database
 
     # Error schemas
     ErrorReadingData:
@@ -612,3 +635,27 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/BaseResponseDetailMessage"
+    GetNodeSuccess:
+      description: Get node success.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GetNodeOk"
+    GetNodeBadRequest:
+      description: Get node bad request.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/BaseResponseDetailMessage"
+          example:
+            detail:
+              message: Invalid or missing flow ID
+    GetNodeNotFound:
+      description: Get node not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/BaseResponseDetailMessage"
+          example:
+            detail:
+              message: Invalid or missing flow ID

@@ -127,3 +127,21 @@ class Util:
             str: The UUID generated.
         """
         return uuid.uuid4().hex
+
+    @staticmethod
+    def convert_to_bool(item) -> dict | list | str:
+        if isinstance(item, dict):
+            for k, v in item.items():
+                item[k] = Util.convert_to_bool(v)
+            return item
+        elif isinstance(item, list):
+            return [Util.convert_to_bool(i) for i in item]
+        elif isinstance(item, str):
+            if item.strip().lower() == "true":
+                return True
+            elif item.strip().lower() == "false":
+                return False
+            else:
+                return item
+        else:
+            return item

@@ -116,6 +116,12 @@ update_module_doc = f"""
         - Module
 
     parameters:
+        - name: flow_id
+          in: path
+          required: true
+          description: The ID of the flow to update the module.
+          schema:
+            type: integer
         - name: module_id
           in: path
           required: true
@@ -123,12 +129,6 @@ update_module_doc = f"""
           schema:
             type: integer
           example: 1
-        - name: flow_id
-          in: path
-          required: true
-          description: The ID of the flow to update the module.
-          schema:
-            type: integer
 
     requestBody:
         required: true
@@ -179,6 +179,12 @@ delete_module_doc = """
         - Module
 
     parameters:
+        - name: flow_id
+          in: path
+          required: true
+          description: The ID of the flow to delete the module.
+          schema:
+            type: integer
         - name: module_id
           in: path
           required: true
@@ -186,12 +192,6 @@ delete_module_doc = """
           schema:
             type: integer
           example: 1
-        - name: flow_id
-          in: path
-          required: true
-          description: The ID of the flow to delete the module.
-          schema:
-            type: integer
 
     responses:
         '200':
@@ -213,6 +213,12 @@ get_module_list_doc = """
         - Module
 
     parameters:
+        - name: flow_id
+          in: path
+          required: true
+          description: The ID of the flow to get the modules.
+          schema:
+            type: integer
         - in: query
           name: fields
           schema:

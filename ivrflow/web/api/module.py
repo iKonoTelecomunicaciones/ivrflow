@@ -201,7 +201,7 @@ async def delete_module(request: web.Request) -> web.Response:
     )
 
 
-@routes.get("/v1/{flow_id}/list_modules", allow_head=False)
+@routes.get("/v1/{flow_id}/module_list", allow_head=False)
 @docstring(get_module_list_doc)
 async def get_module_list(request: web.Request) -> web.Response:
     uuid = generate_uuid()
