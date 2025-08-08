@@ -104,12 +104,8 @@ class Module(SerializableAttrs):
     async def get_node_by_id(
         cls, flow_id: int, node_id: str, module_name: bool = True
     ) -> dict | None:
-        q = "SELECT m.name AS module_name, " if module_name else "SELECT "
-
-        q += """node AS node FROM module m
-        CROSS JOIN LATERAL jsonb_array_elements(m.nodes) AS node
-        WHERE m.flow_id = $1 AND node->>'id' = $2
-        """
+        q = "SELECT m.name AS module_name, node " if module_name else "SELECT node "
+        q += "FROM module m CROSS JOIN LATERAL jsonb_array_elements(m.nodes) AS node WHERE m.flow_id = $1 AND node->>'id' = $2"
         row = await cls.db.fetchrow(q, flow_id, node_id)
 
         return cls._to_dict(row, ["node"]) if row else None
