@@ -204,7 +204,7 @@ delete_module_doc = """
             $ref: '#/components/responses/InternalServerError'
   """
 
-get_list_modules_doc = """
+get_module_list_doc = """
     ---
     summary: Get a list of modules.
     description: Get a list of modules.

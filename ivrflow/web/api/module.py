@@ -11,8 +11,8 @@ from ..base import routes
 from ..docs.module import (
     create_module_doc,
     delete_module_doc,
-    get_list_modules_doc,
     get_module_doc,
+    get_module_list_doc,
     update_module_doc,
 )
 from ..responses import resp
@@ -202,8 +202,8 @@ async def delete_module(request: web.Request) -> web.Response:
 
 
 @routes.get("/v1/{flow_id}/list_modules", allow_head=False)
-@docstring(get_list_modules_doc)
-async def get_list_modules(request: web.Request) -> web.Response:
+@docstring(get_module_list_doc)
+async def get_module_list(request: web.Request) -> web.Response:
     uuid = generate_uuid()
     log.info(f"({uuid}) -> '{request.method}' '{request.path}' Getting module")
 
