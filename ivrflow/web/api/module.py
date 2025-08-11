@@ -7,10 +7,12 @@ from aiohttp import web
 
 from ...db.flow import Flow as DBFlow
 from ...db.module import Module as DBModule
-from ..base import routes
+from ...db.module_backup import ModuleBackup
+from ..base import get_config, routes
 from ..docs.module import (
     create_module_doc,
     delete_module_doc,
+    get_module_backup_doc,
     get_module_doc,
     get_module_list_doc,
     update_module_doc,
@@ -116,13 +118,18 @@ async def create_module(request: web.Request) -> web.Response:
 async def update_module(request: web.Request) -> web.Response:
     uuid = generate_uuid()
     log.info(f"({uuid}) -> '{request.method}' '{request.path}' Updating module")
+    config = get_config()
 
     try:
         flow_id = int(request.match_info["flow_id"])
         module_id = int(request.match_info["module_id"])
         data: dict = await request.json()
 
-        if not data.get("name") and not data.get("nodes") and not data.get("position"):
+        new_name = data.get("name")
+        new_nodes = data.get("nodes")
+        new_position = data.get("position")
+
+        if not new_name and new_nodes is None and new_position is None:
             return resp.bad_request(
                 "At least one of the parameters name, nodes or position is required", uuid
             )
@@ -142,27 +149,33 @@ async def update_module(request: web.Request) -> web.Response:
     if not module:
         return resp.not_found(f"Module with ID '{module_id}' not found in flow_id '{flow_id}'")
 
-    new_name = data.get("name")
+    new_data = {}
     if new_name and new_name != module.name:
         if await DBModule.check_exists_by_name(new_name, flow_id, module_id):
             return resp.bad_request(
                 f"Module with name '{new_name}' already exists in flow_id '{flow_id}'", uuid
             )
-        module.name = new_name
+        new_data["name"] = new_name
 
-    new_nodes = data.get("nodes")
-    if new_nodes and new_nodes != module.nodes or new_nodes == []:
-        module.nodes = new_nodes
+    if new_nodes is not None and (new_nodes != module.nodes or new_nodes == []):
+        new_data["nodes"] = new_nodes
 
-    new_position = data.get("position")
-    if new_position and new_position != module.position or new_position == {}:
-        module.position = new_position
+    if new_position is not None and (new_position != module.position or new_position == {}):
+        new_data["position"] = new_position
 
-    try:
-        log.debug(f"({uuid}) -> Updating module '{module.name}' in flow_id '{flow_id}'")
-        await module.update()
-    except Exception as e:
-        return resp.internal_error(e, uuid, log)
+    if new_data:
+        try:
+            backup_id = await module.backup_module(config)
+            log.debug(f"({uuid}) -> Backup module '{module.name}' created with ID {backup_id}")
+
+            for key, value in new_data.items():
+                setattr(module, key, value)
+
+            log.debug(f"({uuid}) -> Updating module '{module.name}' in flow_id '{flow_id}'")
+            await module.update()
+
+        except Exception as e:
+            return resp.internal_error(e, uuid, log)
 
     return resp.success_response(
         "Module updated successfully", uuid, data={"module_id": module_id}
@@ -201,7 +214,7 @@ async def delete_module(request: web.Request) -> web.Response:
     )
 
 
-@routes.get("/v1/{flow_id}/module_list", allow_head=False)
+@routes.get("/v1/{flow_id}/module/list", allow_head=False)
 @docstring(get_module_list_doc)
 async def get_module_list(request: web.Request) -> web.Response:
     uuid = generate_uuid()
@@ -225,3 +238,31 @@ async def get_module_list(request: web.Request) -> web.Response:
         return resp.internal_error(e, uuid, log)
 
     return resp.success_response("", uuid, modules)
+
+
+@routes.get("/v1/{flow_id}/module/backup", allow_head=False)
+@docstring(get_module_backup_doc)
+async def get_backup(request: web.Request) -> web.Response:
+    uuid = generate_uuid()
+    log.info(f"({uuid}) -> '{request.method}' '{request.path}' Getting module backup")
+
+    offset = int(request.query.get("offset", 0))
+    limit = int(request.query.get("limit", 10))
+    backup_id = request.query.get("backup_id", None)
+    flow_id = int(request.match_info["flow_id"])
+
+    if not await DBFlow.check_exists(flow_id):
+        return resp.not_found(f"Flow with ID {flow_id} not found in the database", uuid)
+
+    if backup_id:
+        backup = await ModuleBackup.get_by_id(int(backup_id))
+        if not backup:
+            return resp.not_found(f"Backup with ID {backup_id} not found", uuid)
+        return resp.success_response(backup.to_dict(), uuid)
+
+    count = await ModuleBackup.get_count_by_flow_id(flow_id=flow_id)
+    backups = await ModuleBackup.all_by_flow_id(flow_id=flow_id, offset=offset, limit=limit)
+
+    return resp.success_response(
+        "", uuid, data={"count": count, "backups": [backup.to_dict() for backup in backups]}
+    )
