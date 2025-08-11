@@ -9,6 +9,7 @@ from mautrix.types import SerializableAttrs
 
 from ..config import config
 from ..db import Flow as DBFlow
+from ..db import Module as DBModule
 from ..types import NodeType
 from .nodes import (
     Answer,
@@ -73,7 +74,7 @@ class Flow(SerializableAttrs):
             path = f"/data/flows/{flow_name}.yaml"
             with open(path, "r") as file:
                 flow: Dict = yaml.safe_load(file)
-            return cls.from_dict(flow)
+            return cls.from_dict(flow.get("flow_variables", {}), flow.get("nodes", []))
         except FileNotFoundError:
             log.warning(f"File {path} not found")
 
@@ -81,7 +82,10 @@ class Flow(SerializableAttrs):
     async def load_from_database(cls, flow_name: str) -> "Flow":
         log.info(f"Loading flow {flow_name} from database")
         flow = await DBFlow.get_by_name(flow_name)
-        return cls.from_dict(flow.flow)
+        modules = await DBModule.all(flow_id=flow.id)
+        nodes = [node for module in modules for node in module.get("nodes", [])]
+
+        return cls.from_dict(flow.flow_vars, nodes)
 
     @classmethod
     async def load_flow(cls, flow_name: str) -> "Flow":
@@ -93,10 +97,10 @@ class Flow(SerializableAttrs):
         return flow
 
     @classmethod
-    def from_dict(cls, flow: Dict) -> "Flow":
+    def from_dict(cls, flow_vars: Dict, nodes: List[Dict]) -> "Flow":
         return cls(
-            flow_variables=flow.get("flow_variables", {}),
-            nodes=[cls.initialize_node_dataclass(node) for node in flow.get("nodes", [])],
+            flow_variables=flow_vars,
+            nodes=[cls.initialize_node_dataclass(node) for node in nodes],
         )
 
     @classmethod
