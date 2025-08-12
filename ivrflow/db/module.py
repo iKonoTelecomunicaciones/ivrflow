@@ -9,6 +9,9 @@ from attr import dataclass, ib
 from mautrix.types import SerializableAttrs
 from mautrix.util.async_db import Database
 
+from ..config import Config
+from .module_backup import ModuleBackup
+
 fake_db = Database.create("") if TYPE_CHECKING else None
 log: Logger = getLogger("ivrflow.db.module")
 
@@ -109,3 +112,15 @@ class Module(SerializableAttrs):
         row = await cls.db.fetchrow(q, flow_id, node_id)
 
         return cls._to_dict(row, ["node"]) if row else None
+
+    async def backup_module(self, config: Config) -> None:
+        backup_count = await ModuleBackup.get_count_by_flow_id(self.flow_id)
+        while backup_count >= config["ivrflow.backup_limit"]:
+            await ModuleBackup.delete_oldest_by_flow_id(self.flow_id)
+            backup_count -= 1
+
+        backup_id = await ModuleBackup(
+            flow_id=self.flow_id, name=self.name, nodes=self.nodes, position=self.position
+        ).insert()
+
+        return backup_id

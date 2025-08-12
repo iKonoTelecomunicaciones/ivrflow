@@ -19,6 +19,9 @@ ivrflow:
   # For debugging purposes, it's possible to enable asyncio debug mode.
   enable_asyncio_debug: false
 
+  # The limit of backups for each module.
+  backup_limit: 10
+
 server:
   # The IP and port to listen to.
   hostname: 0.0.0.0

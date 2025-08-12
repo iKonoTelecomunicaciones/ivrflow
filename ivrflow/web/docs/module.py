@@ -237,3 +237,44 @@ get_module_list_doc = """
         '500':
             $ref: '#/components/responses/InternalServerError'
 """
+
+get_module_backup_doc = """
+    ---
+    summary: Get module backups by flow ID.
+    tags:
+        - Module
+
+    parameters:
+        - in: path
+          name: flow_id
+          description: The flow ID to get the module backups.
+          required: true
+          schema:
+            type: integer
+
+        - in: query
+          name: limit
+          description: The limit of backups to get.
+          schema:
+            type: integer
+
+        - in: query
+          name: offset
+          description: The offset of backups to get.
+          schema:
+            type: integer
+
+        - in: query
+          name: backup_id
+          description: The backup ID to get.
+          schema:
+              type: integer
+
+    responses:
+        '200':
+            $ref: '#/components/responses/ModuleBackupsSuccess'
+        '404':
+            $ref: '#/components/responses/ModuleBackupsNotFound'
+        '500':
+            $ref: '#/components/responses/InternalServerError'
+"""
