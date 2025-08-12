@@ -97,7 +97,7 @@ class Flow(SerializableAttrs):
         return flow
 
     @classmethod
-    def from_dict(cls, flow_vars: Dict, nodes: List[Dict]) -> "Flow":
+    def from_dict(cls, flow_vars: dict, nodes: list[dict]) -> "Flow":
         return cls(
             flow_variables=flow_vars,
             nodes=[cls.initialize_node_dataclass(node) for node in nodes],
