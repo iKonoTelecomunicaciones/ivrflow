@@ -248,7 +248,7 @@ async def get_backup(request: web.Request) -> web.Response:
 
     offset = int(request.query.get("offset", 0))
     limit = int(request.query.get("limit", 10))
-    backup_id = request.query.get("backup_id", None)
+    backup_id = request.query.get("backup_id")
     flow_id = int(request.match_info["flow_id"])
 
     if not await DBFlow.check_exists(flow_id):

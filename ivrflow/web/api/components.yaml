@@ -213,7 +213,7 @@ components:
       example:
         detail:
           message: Node with ID 'start' not found in the database
-    GetFlowBackupsOk:
+    GetModuleBackupsOk:
       type: object
       properties:
         count:
@@ -684,14 +684,14 @@ components:
           example:
             detail:
               message: Invalid or missing flow ID
-    GetFlowBackupsSuccess:
-      description: Get flow backups success.
+    ModuleBackupsSuccess:
+      description: Get module backups success.
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/GetFlowBackupsOk"
-    GetFlowBackupsNotFound:
-      description: Get flow backups not found.
+            $ref: "#/components/schemas/GetModuleBackupsOk"
+    ModuleBackupsNotFound:
+      description: Get module backups not found.
       content:
         application/json:
           schema:

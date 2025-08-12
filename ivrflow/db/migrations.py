@@ -89,3 +89,6 @@ async def upgrade_v6(conn: Connection) -> None:
             created_at  TIMESTAMP WITH TIME ZONE DEFAULT now()
         )"""
     )
+
+    # Create index on module_backup table
+    await conn.execute("CREATE INDEX idx_module_backup_flow_id ON module_backup (flow_id)")

@@ -272,9 +272,9 @@ get_module_backup_doc = """
 
     responses:
         '200':
-            $ref: '#/components/responses/GetFlowBackupsSuccess'
+            $ref: '#/components/responses/ModuleBackupsSuccess'
         '404':
-            $ref: '#/components/responses/GetFlowBackupsNotFound'
+            $ref: '#/components/responses/ModuleBackupsNotFound'
         '500':
             $ref: '#/components/responses/InternalServerError'
 """
