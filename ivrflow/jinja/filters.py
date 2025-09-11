@@ -109,8 +109,8 @@ def format_phone_number(text: str, country_code: str = "CO", fmt: str | None = N
         list[str]: The formatted phone numbers
 
     Jinja usage:
-        {{ "Call me at 3175550194" | format_phone_number(country_code="CO") }}
-        {{ "Call me at 3175550194" | format_phone_number(country_code="CO", fmt="E164") }}
+        {{ "Call me at 3175550194" | phone_number_fmt(country_code="CO") }}
+        {{ "Call me at 3175550194" | phone_number_fmt(country_code="CO", fmt="E164") }}
     """
 
     formats = {
@@ -146,7 +146,6 @@ def register_filters(env: Environment):
             "strftime_tz": strftime_tz,
             "dir": get_attrs,
             "num2words": num_to_words,
-            "split_number_words": split_number_words,
-            "format_phone_number": format_phone_number,
+            "phone_number_fmt": format_phone_number,
         }
     )
