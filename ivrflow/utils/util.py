@@ -9,7 +9,7 @@ import jq
 from jinja2 import TemplateSyntaxError, UndefinedError
 from mautrix.util.logging import TraceLogger
 
-from ..jinja.jinja_template import jinja_env
+from ..jinja.env import jinja_env
 
 log: TraceLogger = getLogger("ivrflow.util")
 
