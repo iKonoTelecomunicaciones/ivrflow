@@ -17,21 +17,35 @@ class _Response:
     @staticmethod
     def base_response(
         status: HTTPStatus,
-        message: str,
-        uuid: str = "",
+        message: str | None = None,
+        uuid: str | None = None,
         data: dict | None = None,
+        log_msg: str | None = None,
     ) -> web.Response:
 
         if message:
-            log.info(f"({uuid}) -> {message}" if uuid else message)
             response = {"detail": {"message": message}}
             if data:
                 response["detail"]["data"] = data
         else:
-            log.info(f"({uuid}) -> {data}" if uuid else data)
             response = data
 
+        log_msg = log_msg or response
+
+        log.info(f"({uuid}) -> {log_msg}" if uuid else log_msg)
+
         return web.json_response(response, status=status)
+
+    def success_response(
+        self,
+        message: str = None,
+        uuid: str = None,
+        data: dict = None,
+        log_msg: str = None,
+    ) -> web.Response:
+        return self.base_response(
+            status=HTTPStatus.OK, message=message, uuid=uuid, data=data, log_msg=log_msg
+        )
 
     @classmethod
     def bad_request(cls, message: str, uuid: str = "", data: dict = None) -> web.Response:
@@ -50,10 +64,6 @@ class _Response:
         return cls.base_response(HTTPStatus.INTERNAL_SERVER_ERROR, str(error), uuid)
 
     @classmethod
-    def success_response(cls, message: str, uuid: str = "", data: dict = None) -> web.Response:
-        return cls.base_response(HTTPStatus.OK, message, uuid, data)
-
-    @classmethod
     def created(cls, message: str, uuid: str = "", data: dict = None) -> web.Response:
         return cls.base_response(HTTPStatus.CREATED, message, uuid, data)
 
@@ -61,6 +71,13 @@ class _Response:
     @classmethod
     def body_not_json(cls, uuid: str = "") -> web.Response:
         return cls.bad_request(MESSAGES["body_not_json"], uuid)
+
+    def conflict(
+        self, message: str = None, uuid: str = None, data: dict = None, log_msg: str = None
+    ) -> web.Response:
+        return self.base_response(
+            HTTPStatus.CONFLICT, message=message, uuid=uuid, data=data, log_msg=log_msg
+        )
 
 
 resp = _Response()

@@ -9,6 +9,17 @@ components:
           properties:
             message:
               type: string
+    BaseResponseDetailMessageData:
+      type: object
+      properties:
+        detail:
+          type: object
+          properties:
+            message:
+              type: string
+            data:
+              type: object
+              additionalProperties: true
     # End of generic schemas
 
     GetEmailServersOk:
@@ -205,14 +216,6 @@ components:
           type: "get_full_variable"
           variables:
             customer_phone: "57${CALLERID(num)}"
-    GetNodeNotFound:
-      type: object
-      properties:
-        detail:
-          type: object
-      example:
-        detail:
-          message: Node with ID 'start' not found in the database
     GetModuleBackupsOk:
       type: object
       properties:
@@ -238,6 +241,23 @@ components:
               y: 357.11742401123036
               scale: 0.4092324994498387
             created_at: "2021-01-01T00:00:00Z"
+    GetListNodesOk:
+      type: object
+      properties:
+        nodes:
+          type: array
+      example:
+        nodes:
+          - module_id: 1
+            id: start
+            type: message
+            name: start
+            o_connection: message_1
+          - module_id: 1
+            id: message_1
+            type: message
+            name: message_1
+            o_connection: message_2
 
     # Error schemas
     ErrorReadingData:
@@ -566,6 +586,25 @@ components:
               value:
                 detail:
                   message: Module with ID '1' not found in flow_id '1'
+    UpdateModuleConflict:
+      description: Update module conflict.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/BaseResponseDetailMessageData"
+          examples:
+            NodeAlreadyExists:
+              value:
+                detail:
+                  message: Node with ID 'id' already exists
+                  data:
+                    module_name: module_name
+            NodeIsRepeated:
+              value:
+                detail:
+                  message: Node with ID 'id' is repeated
+                  data:
+                    module_name: ''
     UpdateModuleBadRequest:
       description: Update module bad request.
       content:
@@ -601,6 +640,25 @@ components:
               message: Module updated successfully
               data:
                 module_id: 1
+    CreateModuleConflict:
+      description: Create module conflict.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/BaseResponseDetailMessageData"
+          examples:
+            NodeAlreadyExists:
+              value:
+                detail:
+                  message: Node with ID 'id' already exists
+                  data:
+                    module_name: module_name
+            NodeIsRepeated:
+              value:
+                detail:
+                  message: Node with ID 'id' is repeated
+                  data:
+                    module_name: ''
     DeleteModuleNotFound:
       description: Delete module not found.
       content:
@@ -654,12 +712,18 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/BaseResponseDetailMessage"
+          example:
+            detail:
+              message: Invalid or missing flow ID
     GetListModulesNotFound:
       description: Get list modules not found.
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/BaseResponseDetailMessage"
+          example:
+            detail:
+              message: Flow with ID 1 not found in the database
     GetNodeSuccess:
       description: Get node success.
       content:
@@ -683,7 +747,7 @@ components:
             $ref: "#/components/schemas/BaseResponseDetailMessage"
           example:
             detail:
-              message: Invalid or missing flow ID
+              message: Node with ID '1' not found in the database
     ModuleBackupsSuccess:
       description: Get module backups success.
       content:
@@ -696,3 +760,19 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/BaseResponseDetailMessage"
+
+    GetListNodesSuccess:
+      description: Get list nodes success.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GetListNodesOk"
+    GetListNodesNotFound:
+      description: Get list nodes not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/BaseResponseDetailMessage"
+          example:
+            detail:
+              message: Flow with ID 1 not found in the database

@@ -103,6 +103,8 @@ create_module_doc = f"""
             $ref: '#/components/responses/CreateModuleBadRequest'
         '404':
             $ref: '#/components/responses/CreateModuleNotFound'
+        '409':
+            $ref: '#/components/responses/CreateModuleConflict'
         '500':
             $ref: '#/components/responses/InternalServerError'
   """
@@ -166,6 +168,8 @@ update_module_doc = f"""
             $ref: '#/components/responses/UpdateModuleBadRequest'
         '404':
             $ref: '#/components/responses/UpdateModuleNotFound'
+        '409':
+            $ref: '#/components/responses/UpdateModuleConflict'
         '500':
             $ref: '#/components/responses/InternalServerError'
   """

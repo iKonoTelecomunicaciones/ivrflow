@@ -80,8 +80,11 @@ async def get_flow(request: web.Request) -> web.Response:
             data = await DBFlow.get_by_name(flow_name)
             if not data:
                 return resp.not_found(f"Flow with name {flow_name} not found")
+            flow_id = data.id
         data = data.serialize()
+        log_msg = f"Returning flow_id: {flow_id}"
     else:
         data = {"flows": [{flow.pop("name"): flow for flow in await DBFlow.all()}]}
+        log_msg = f"Returning {len(data['flows'])} flows"
 
-    return resp.success_response("", uuid, data=data)
+    return resp.success_response(data=data, uuid=uuid, log_msg=log_msg)
