@@ -8,7 +8,7 @@ from ...db.flow import Flow as DBFlow
 from ...db.module import Module as DBModule
 from ...utils import Util
 from ..base import routes
-from ..docs.node import get_node_doc
+from ..docs.node import get_node_doc, get_node_list_doc
 from ..responses import resp
 from ..util import docstring, generate_uuid
 
@@ -21,7 +21,7 @@ async def get_node(request: web.Request) -> web.Response:
     uuid = generate_uuid()
     log.info(f"({uuid}) -> '{request.method}' '{request.path}' Getting node")
 
-    module_name = Util.convert_to_bool(request.query.get("module_name", True))
+    add_module_name = Util.convert_to_bool(request.query.get("module_name", True))
     node_id = request.match_info["id"]
 
     try:
@@ -30,7 +30,7 @@ async def get_node(request: web.Request) -> web.Response:
         if not await DBFlow.check_exists(flow_id):
             return resp.not_found(f"Flow with ID {flow_id} not found in the database", uuid)
 
-        node = await DBModule.get_node_by_id(flow_id, node_id, module_name)
+        node = await DBModule.get_node_by_id(flow_id, node_id, add_module_name)
     except (KeyError, ValueError):
         return resp.bad_request("Invalid or missing flow ID", uuid)
     except Exception as e:
@@ -39,4 +39,40 @@ async def get_node(request: web.Request) -> web.Response:
     if not node:
         return resp.not_found(f"Node with ID '{node_id}' not found in the database", uuid)
 
-    return resp.success_response("", uuid, node)
+    return resp.success_response(data=node, uuid=uuid)
+
+
+@routes.get("/v1/{flow_id}/node", allow_head=False)
+@docstring(get_node_list_doc)
+async def get_node_list(request: web.Request) -> web.Response:
+    uuid = generate_uuid()
+    log.info(f"({uuid}) -> '{request.method}' '{request.path}' Getting node list")
+
+    module_fields = request.query.getall("module_fields", ["id"])
+    node_fields = request.query.getall("node_fields", ["id", "name", "type"])
+
+    try:
+        flow_id = int(request.match_info["flow_id"])
+
+        if not await DBFlow.check_exists(flow_id):
+            return resp.not_found(f"Flow with ID {flow_id} not found in the database", uuid)
+
+        modules = await DBModule.all(flow_id)
+
+        node_list = []
+        for module in modules:
+            module_data = {f"module_{field}": getattr(module, field) for field in module_fields}
+            node_list.extend(
+                {
+                    **module_data,
+                    **{node_field: node.get(node_field) for node_field in node_fields},
+                }
+                for node in module.nodes
+            )
+
+    except (KeyError, ValueError):
+        return resp.bad_request("Invalid or missing flow ID", uuid)
+    except Exception as e:
+        return resp.internal_error(e, uuid, log)
+
+    return resp.success_response(data={"nodes": node_list}, uuid=uuid)

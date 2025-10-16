@@ -50,21 +50,24 @@ async def get_module(request: web.Request) -> web.Response:
                 return resp.not_found(f"Module with ID {module_id} not found")
 
             data = module.serialize()
+            log_msg = f"Returning module_id: {module_id}"
 
         elif name:
             module = await DBModule.get_by_name(name, flow_id)
             if not module:
                 return resp.not_found(f"Module with name '{name}' not found")
             data = module.serialize()
+            log_msg = f"Returning module_name: {name}"
 
         else:
             modules = [module.serialize() for module in await DBModule.all(flow_id)]
             data = {"modules": {module.pop("name"): module for module in modules}}
+            log_msg = f"Returning {len(data['modules'])} modules"
 
     except Exception as e:
         return resp.internal_error(e, uuid, log)
 
-    return resp.success_response("", data=data)
+    return resp.success_response(data=data, uuid=uuid, log_msg=log_msg)
 
 
 @routes.post("/v1/{flow_id}/module")
@@ -97,6 +100,21 @@ async def create_module(request: web.Request) -> web.Response:
             uuid,
         )
 
+    nodes_ids = set()
+    for node in data.get("nodes", []):
+        node_id = node.get("id")
+        msg = f"Node with ID '{node_id}'"
+
+        if node_id in nodes_ids:
+            return resp.conflict(f"{msg} is repeated", uuid, {"module_name": ""})
+
+        if _node := await DBModule.get_node_by_id(flow_id, node_id, True):
+            return resp.conflict(
+                f"{msg} already exists", uuid, {"module_name": _node.get("module_name")}
+            )
+
+        nodes_ids.add(node_id)
+
     try:
         log.debug(f"({uuid}) -> Creating new module '{name}' in flow_id '{flow_id}'")
         new_module = DBModule(
@@ -110,7 +128,9 @@ async def create_module(request: web.Request) -> web.Response:
     except Exception as e:
         return resp.internal_error(e, uuid, log)
 
-    return resp.created("Module created successfully", uuid, data={"module_id": module_id})
+    return resp.created(
+        message="Module created successfully", uuid=uuid, data={"module_id": module_id}
+    )
 
 
 @routes.patch("/v1/{flow_id}/module/{module_id}")
@@ -158,6 +178,21 @@ async def update_module(request: web.Request) -> web.Response:
         new_data["name"] = new_name
 
     if new_nodes is not None and (new_nodes != module.nodes or new_nodes == []):
+        nodes_ids = set()
+        for node in new_nodes:
+            node_id = node.get("id")
+            msg = f"Node with ID '{node_id}'"
+
+            if node_id in nodes_ids:
+                return resp.conflict(f"{msg} is repeated", uuid, {"module_name": ""})
+
+            if _node := await DBModule.get_node_by_id(flow_id, node_id, True):
+                if not _node.get("module_name") == module.name:
+                    return resp.conflict(
+                        f"{msg} already exists", uuid, {"module_name": _node.get("module_name")}
+                    )
+            nodes_ids.add(node_id)
+
         new_data["nodes"] = new_nodes
 
     if new_position is not None and (new_position != module.position or new_position == {}):
@@ -178,7 +213,7 @@ async def update_module(request: web.Request) -> web.Response:
             return resp.internal_error(e, uuid, log)
 
     return resp.success_response(
-        "Module updated successfully", uuid, data={"module_id": module_id}
+        message="Module updated successfully", uuid=uuid, data={"module_id": module_id}
     )
 
 
@@ -210,7 +245,7 @@ async def delete_module(request: web.Request) -> web.Response:
         return resp.internal_error(e, uuid, log)
 
     return resp.success_response(
-        "Module deleted successfully", uuid, data={"module_id": module_id}
+        message="Module deleted successfully", uuid=uuid, data={"module_id": module_id}
     )
 
 
@@ -237,7 +272,9 @@ async def get_module_list(request: web.Request) -> web.Response:
     except Exception as e:
         return resp.internal_error(e, uuid, log)
 
-    return resp.success_response("", uuid, modules)
+    return resp.success_response(
+        data=modules, uuid=uuid, log_msg=f"Returning {len(modules['modules'])} modules"
+    )
 
 
 @routes.get("/v1/{flow_id}/module/backup", allow_head=False)
@@ -262,7 +299,6 @@ async def get_backup(request: web.Request) -> web.Response:
 
     count = await ModuleBackup.get_count_by_flow_id(flow_id=flow_id)
     backups = await ModuleBackup.all_by_flow_id(flow_id=flow_id, offset=offset, limit=limit)
+    data = {"count": count, "backups": [backup.to_dict() for backup in backups]}
 
-    return resp.success_response(
-        "", uuid, data={"count": count, "backups": [backup.to_dict() for backup in backups]}
-    )
+    return resp.success_response(uuid=uuid, data=data, log_msg=f"Returning {count} backups")
