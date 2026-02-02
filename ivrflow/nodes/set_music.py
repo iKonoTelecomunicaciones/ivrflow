@@ -36,7 +36,7 @@ class SetMusic(Base):
         )
 
     async def run(self):
-        self.log.info(f"Channel {self.channel.channel_uniqueid} enters set_music node {self.id}")
+        self.log.info(f"[{self.channel.channel_uniqueid}] Entering set_music node {self.id}")
 
         await self.asterisk_conn.agi.set_music(toggle=self.toggle, music=self.music_class)
 

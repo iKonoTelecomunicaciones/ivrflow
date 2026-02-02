@@ -69,7 +69,7 @@ class Flow(SerializableAttrs):
 
     @classmethod
     def load_from_yaml(cls, flow_name: str) -> "Flow":
-        log.info(f"Loading flow {flow_name} from yaml")
+        log.info(f"Loading flow [{flow_name}] from yaml")
         try:
             path = f"/data/flows/{flow_name}.yaml"
             with open(path, "r") as file:
@@ -80,7 +80,7 @@ class Flow(SerializableAttrs):
 
     @classmethod
     async def load_from_database(cls, flow_name: str) -> "Flow":
-        log.info(f"Loading flow {flow_name} from database")
+        log.info(f"Loading flow [{flow_name}] from database")
         flow = await DBFlow.get_by_name(flow_name)
         modules = await DBModule.all(flow_id=flow.id)
         nodes = [node for module in modules for node in module.get("nodes", [])]

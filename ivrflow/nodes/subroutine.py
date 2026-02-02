@@ -24,7 +24,7 @@ class Subroutine(Base):
 
     async def run(self):
         """This function runs the subroutine node."""
-        self.log.info(f"Channel {self.channel.channel_uniqueid} enters subroutine node {self.id}")
+        self.log.info(f"[{self.channel.channel_uniqueid}] Entering subroutine node {self.id}")
 
         # Get current stack data
         lifo_stack: LifoQueue = self.channel._stack
@@ -35,13 +35,15 @@ class Subroutine(Base):
             go_sub = self.go_sub
             if not go_sub:
                 self.log.warning(
-                    f"The go_sub value in {self.id} not found. Please check the configuration"
+                    f"[{self.channel.channel_uniqueid}] The go_sub value in {self.id} not found. Please check the configuration"
                 )
                 return
 
             # If the stack is empty, add the current node to the stack
             if lifo_stack.empty():
-                self.log.info(f"Add '{self.id}' node to empty LiFo Stack")
+                self.log.info(
+                    f"[{self.channel.channel_uniqueid}] Add '{self.id}' node to empty LiFo Stack"
+                )
                 lifo_stack.put(self.id)
             else:
                 # Get the last node from the stack
@@ -49,7 +51,9 @@ class Subroutine(Base):
 
                 # If this node is not the last node, add it to the stack
                 if last_node and last_node != self.id:
-                    self.log.info(f"Add '{self.id}' node to LiFo Stack: {lifo_stack.queue}")
+                    self.log.info(
+                        f"[{self.channel.channel_uniqueid}] Add '{self.id}' node to LiFo Stack: {lifo_stack.queue}"
+                    )
                     lifo_stack.put(self.id)
 
             # Update the stack in db
@@ -57,17 +61,17 @@ class Subroutine(Base):
             self.channel.stack = json.dumps(stack)
             await self.channel.update()
         except ValueError as e:
-            self.log.warning(e)
+            self.log.warning(f"[{self.channel.channel_uniqueid}] Error: {e}")
 
         # Update the menu
         if not lifo_stack.empty() and last_node != self.id:
-            self.log.debug(f"Go to subroutine: '{self.go_sub}'")
+            self.log.debug(f"[{self.channel.channel_uniqueid}] Go to subroutine: '{self.go_sub}'")
             await self.channel.update_ivr(node_id=self.go_sub)
 
         # If the stack is empty, o finished subroutine go to the next node
         o_connection = self.render_data(self.content.o_connection)
         if lifo_stack.empty() or last_node == self.id:
-            self.log.debug(f"Go to next node: '{o_connection}'")
+            self.log.debug(f"[{self.channel.channel_uniqueid}] Go to next node: '{o_connection}'")
             await self.channel.update_ivr(
                 node_id=o_connection,
                 state=ChannelState.END if not o_connection else None,

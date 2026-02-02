@@ -32,9 +32,9 @@ class ExecApp(Base):
         )
 
     async def run(self):
-        self.log.info(f"Channel {self.channel.channel_uniqueid} enters exec_app node {self.id}")
+        self.log.info(f"[{self.channel.channel_uniqueid}] Entering exec_app node {self.id}")
         self.log.info(
-            f"Setting ExecApp '{self.application}' and '{self.options}' to channel: {self.channel.channel_uniqueid}"
+            f"[{self.channel.channel_uniqueid}] Setting ExecApp '{self.application}' and '{self.options}'"
         )
 
         await self.asterisk_conn.agi.exec_app(

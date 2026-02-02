@@ -28,12 +28,19 @@ class DatabaseGet(Base):
         )
 
     async def run(self):
+        self.log.info(f"[{self.channel.channel_uniqueid}] Entering database_get node {self.id}")
         for variable, entry in self.variables.items():
             family, key = [x.strip("/") for x in entry.rsplit("/", 1)]
             db_result = await self.asterisk_conn.agi.database_get(family, key)
             value = db_result.data.get("data")
             if value:
-                self.log.info(f"Setting {variable}: {value} from {entry} database entry")
+                self.log.info(
+                    f"[{self.channel.channel_uniqueid}] Getting {variable}: {value} from {entry} database entry"
+                )
                 await self.channel.set_variable(variable, value)
+            else:
+                self.log.debug(
+                    f"[{self.channel.channel_uniqueid}] No value found for variable {variable} in database entry {entry}"
+                )
 
         await self._update_node()

@@ -184,27 +184,24 @@ class IVRFlow(AGIView):
         node = flow.node(channel=channel)
 
         if node is None:
-            log.debug(f"Channel {channel.channel_uniqueid} does not have a node")
+            log.debug(f"[{channel.channel_uniqueid}] does not have a node")
             await channel.update_ivr(node_id="start")
             return
 
-        log.warning(f"-------> Executing Node: [{node.id}]")
-
-        log.debug(
-            f"The [channel: {channel.channel_uniqueid}] [node: {node.id}] [state: {channel.state}]"
-        )
+        log.info(f"[{channel.channel_uniqueid}] Executing Node: [{node.id}]")
+        log.debug(f"[{channel.channel_uniqueid}] The [node: {node.id}] [state: {channel.state}]")
 
         try:
             await node.run()
         except AGIAppError as e:
             if str(e.message) == "b'Error executing application, or hangup.'":
-                log.warning(f"Hangup detected [node: {node.id}]")
+                log.warning(f"[{channel.channel_uniqueid}] Hangup detected [node: {node.id}]")
                 return
-            log.error(f"Error in node {node.id}", exc_info=e)
+            log.error(f"[{channel.channel_uniqueid}] Error in node {node.id}", exc_info=e)
             return
 
         if channel.state == ChannelState.END:
-            log.debug(f"The channel {channel.channel_uniqueid} has terminated the flow")
+            log.debug(f"[{channel.channel_uniqueid}] The channel has terminated the flow")
             await channel.update_ivr(node_id=ChannelState.START)
             return
 

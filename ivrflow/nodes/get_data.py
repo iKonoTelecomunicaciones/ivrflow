@@ -29,7 +29,7 @@ class GetData(Switch):
         return self.render_data(data=self.content.max_digits)
 
     async def run(self):
-        self.log.info(f"Channel {self.channel.channel_uniqueid} enters input node {self.id}")
+        self.log.info(f"[{self.channel.channel_uniqueid}] Entering get_data node {self.id}")
 
         middlewares_sorted = {
             MiddlewareType(middleware.type): middleware for middleware in self.middlewares
@@ -37,6 +37,9 @@ class GetData(Switch):
 
         tts_middleware: TTSMiddleware = middlewares_sorted.get(MiddlewareType.tts)
         if tts_middleware:
+            self.log.info(
+                f"[{self.channel.channel_uniqueid}] Running TTS middleware {tts_middleware.id}"
+            )
             middleware_extended_data = self.render_data(
                 self.content.middlewares.get(tts_middleware.id)
             )
@@ -44,6 +47,9 @@ class GetData(Switch):
 
         asr_middleware: ASRMiddleware = middlewares_sorted.get(MiddlewareType.asr)
         if asr_middleware:
+            self.log.info(
+                f"[{self.channel.channel_uniqueid}] Running ASR middleware {asr_middleware.id}"
+            )
             middleware_extended_data = self.render_data(
                 self.content.middlewares.get(asr_middleware.id)
             )

@@ -99,9 +99,7 @@ class HTTPRequest(Switch):
             The status code and the response text.
         """
 
-        self.log.debug(
-            f"Channel {self.channel.channel_uniqueid} enters http_request node {self.id}"
-        )
+        self.log.debug(f"[{self.channel.channel_uniqueid}] Entering http_request node {self.id}")
 
         request_body = self.prepare_request()
 
@@ -122,13 +120,15 @@ class HTTPRequest(Switch):
                 timeout=timeout,
             )
         except Exception as e:
-            self.log.exception(f"Error in http_request node: {e}")
+            self.log.exception(
+                f"[{self.channel.channel_uniqueid}] Error in http_request node: {e}"
+            )
             o_connection = await self.get_case_by_id(id=500)
             await self.channel.update_ivr(node_id=o_connection, state=None)
             return 500, e
 
         self.log.debug(
-            f"node: {self.id} method: {self.method} url: {self.url} status: {response.status}"
+            f"[{self.channel.channel_uniqueid}] node: {self.id} method: {self.method} url: {self.url} status: {response.status}"
         )
 
         if response.status == 401:
@@ -167,7 +167,7 @@ class HTTPRequest(Switch):
                     jq_result: dict = Util.jq_compile(self.http_variables[variable], response_data)
                     if jq_result.get("status") != 200:
                         self.log.error(
-                            f"""Error parsing '{self.http_variables[variable]}' with jq
+                            f"""[{self.channel.channel_uniqueid}] Error parsing '{self.http_variables[variable]}' with jq
                             on variable '{variable}'. Set to default value ({default_value}).
                             Error message: {jq_result.get("error")}, Status: {jq_result.get("status")}"""
                         )
@@ -219,7 +219,9 @@ class HTTPRequest(Switch):
             and self.HTTP_ATTEMPTS[self.channel.channel_uniqueid]["attempts_count"]
             >= self.middleware.attempts
         ):
-            self.log.debug("Attempts limit reached, o_connection set as `default`")
+            self.log.debug(
+                f"[{self.channel.channel_uniqueid}] Attempts limit reached, o_connection set as `default`"
+            )
             self.HTTP_ATTEMPTS.update(
                 {self.channel.channel_uniqueid: {"last_http_node": None, "attempts_count": 0}}
             )
@@ -242,7 +244,7 @@ class HTTPRequest(Switch):
                 }
             )
             self.log.debug(
-                "HTTP auth attempt "
+                f"[{self.channel.channel_uniqueid}] HTTP auth attempt "
                 f"{self.HTTP_ATTEMPTS[self.channel.channel_uniqueid]['attempts_count']}, "
                 "trying again ..."
             )
@@ -253,7 +255,9 @@ class HTTPRequest(Switch):
         """
         try:
             status, response = await self.make_request()
-            self.log.info(f"http_request node {self.id} had a status of {status}")
+            self.log.info(
+                f"[{self.channel.channel_uniqueid}] http_request node {self.id} had a status of {status}"
+            )
         except Exception as e:
             self.log.exception(e)
 

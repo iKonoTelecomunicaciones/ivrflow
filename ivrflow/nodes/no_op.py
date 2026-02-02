@@ -30,15 +30,15 @@ class NoOp(Base):
         )
 
     async def run(self) -> None:
-        self.log.info(f"Channel {self.channel.channel_uniqueid} enters no_op node {self.id}")
+        self.log.info(f"[{self.channel.channel_uniqueid}] Entering no_op node {self.id}")
 
         if self.text:
-            self.log.info(f"Channel {self.channel.channel_uniqueid} log message: {self.text}")
+            self.log.debug(f"[{self.channel.channel_uniqueid}] log message: {self.text}")
 
         if not self.text or self.text == ".":
-            self.log.info(
-                f"Channel {self.channel.channel_uniqueid} "
-                f"all variables: {self.channel._variables | self.default_variables}"
+            self.log.debug(
+                f"[{self.channel.channel_uniqueid}] "
+                f"all variables: {repr(self.channel._variables | self.default_variables)}"
             )
 
         await self._update_node()

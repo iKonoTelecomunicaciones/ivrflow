@@ -57,10 +57,13 @@ class Email(Base):
         )
 
     async def run(self):
+        self.log.info(f"[{self.channel.channel_uniqueid}] Entering email node {self.id}")
         if not self.email_client:
             self.email_client = EmailClient.get_by_server_id(self.server_id)
 
-        self.log.debug(f"Sending email {self.subject or self.text} to {self.recipients}")
+        self.log.debug(
+            f"[{self.channel.channel_uniqueid}] Sending email {self.subject or self.text} to {self.recipients}"
+        )
 
         email = EmailMessage(
             subject=self.subject,

@@ -28,9 +28,12 @@ class DatabaseDel(Base):
         )
 
     async def run(self):
+        self.log.info(f"[{self.channel.channel_uniqueid}] Entering database_del node {self.id}")
         for entry in self.entries:
             family, key = [x.strip("/") for x in entry.rsplit("/", 1)]
             db_result = await self.asterisk_conn.agi.database_del(family, key)
-            self.log.info(f"node database_del send family,key:{entry} result {db_result.result}")
+            self.log.info(
+                f"[{self.channel.channel_uniqueid}] Delete family,key:{entry} result {db_result.result}"
+            )
 
         await self._update_node()

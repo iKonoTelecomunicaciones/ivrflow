@@ -31,6 +31,9 @@ class GetFullVariable(Base):
         )
 
     async def run(self):
+        self.log.info(
+            f"[{self.channel.channel_uniqueid}] Entering get_full_variable node {self.id}"
+        )
         variables_to_set = {}
 
         for key, value in self.variables.items():
@@ -40,8 +43,6 @@ class GetFullVariable(Base):
 
         await self.channel.set_variables(variables_to_set)
 
-        self.log.info(
-            f"Node {self.id}, variables to set: {variables_to_set}, to channel: {self.channel.channel_uniqueid}"
-        )
+        self.log.info(f"[{self.channel.channel_uniqueid}] variables to set: {variables_to_set}")
 
         await self._update_node()

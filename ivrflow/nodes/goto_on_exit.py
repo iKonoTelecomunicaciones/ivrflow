@@ -35,9 +35,7 @@ class GotoOnExit(Base):
         )
 
     async def run(self):
-        self.log.info(
-            f"Channel {self.channel.channel_uniqueid} enters goto_on_exit node {self.id}"
-        )
+        self.log.info(f"[{self.channel.channel_uniqueid}] Entering goto_on_exit node {self.id}")
 
         await self.asterisk_conn.agi.goto_on_exit(
             context=self.context, extension=self.extension, priority=self.priority

@@ -127,8 +127,7 @@ class Channel(DBChannel):
         self._variables[variable_id] = value
         self.variables = json.dumps(self._variables)
         self.log.debug(
-            f"Saving variable [{variable_id}] to channel "
-            f"[{self.channel_uniqueid}] :: content [{value}]"
+            f"[{self.channel_uniqueid}] Saving variable [{variable_id}] :: content [{repr(value)}]"
         )
         await self.update()
 
@@ -157,7 +156,7 @@ class Channel(DBChannel):
         """
 
         self.log.debug(
-            f"The [channel: {self.channel_uniqueid}] will update his [node: {self.node_id}] to"
+            f"[{self.channel_uniqueid}] Updating node: {self.node_id} to"
             f"[{node_id.value if isinstance(node_id, ChannelState) else node_id}] "
             f"and his [state: {self.state}] to [{state}]"
         )
@@ -189,18 +188,16 @@ class Channel(DBChannel):
             return
 
         if not self._variables:
-            self.log.debug(f"Variables in the channel {self.channel_uniqueid} are empty")
+            self.log.debug(f"[{self.channel_uniqueid}] Variables are empty")
             return
 
         if variable_id and not self._variables.get(variable_id):
-            self.log.debug(
-                f"Variable [{variable_id}] does not exists in the channel {self.channel_uniqueid}"
-            )
+            self.log.debug(f"[{self.channel_uniqueid}] Variable [{variable_id}] does not exists")
             return
 
         content = self._variables.pop(variable_id, None)
         self.variables = json.dumps(self._variables)
         self.log.debug(
-            f"Removing variable [{variable_id}] to channel [{self.channel_uniqueid}] :: content [{content}]"
+            f"[{self.channel_uniqueid}] Removing variable [{variable_id}] :: content [{repr(content)}]"
         )
         await self.update()

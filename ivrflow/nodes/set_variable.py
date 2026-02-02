@@ -28,9 +28,7 @@ class SetVariable(Base):
         )
 
     async def run(self):
-        self.log.info(
-            f"Channel {self.channel.channel_uniqueid} enters set_variable node {self.id}"
-        )
+        self.log.info(f"[{self.channel.channel_uniqueid}] Entering set_variable node {self.id}")
 
         key_str = f"ARRAY({'|'.join(self.variables.keys())})"
         value_str = f"{'|'.join(self.variables.values())}"

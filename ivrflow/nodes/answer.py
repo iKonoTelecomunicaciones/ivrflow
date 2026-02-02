@@ -24,9 +24,11 @@ class Answer(Base):
         )
 
     async def run(self):
-        self.log.info(f"Channel {self.channel.channel_uniqueid} enters answer node {self.id}")
+        self.log.info(f"[{self.channel.channel_uniqueid}] Entering answer node {self.id}")
 
         result = await self.asterisk_conn.agi.answer()
-        self.log.info(f"Result node {self.id}: {result.result}")
+        self.log.info(
+            f"[{self.channel.channel_uniqueid}] Answer node {self.id} result: {result.result}"
+        )
 
         await self._update_node()
