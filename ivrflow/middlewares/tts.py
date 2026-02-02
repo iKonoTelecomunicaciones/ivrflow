@@ -69,7 +69,7 @@ class TTSMiddleware(Base):
                 self.method, self.url, timeout=timeout, **request_body
             )
         except Exception as e:
-            self.log.exception(f"Error in middleware: {e}")
+            self.log.exception(f"[{self.channel.channel_uniqueid}] Error in middleware: {e}")
             return
 
         variables = {}
@@ -79,7 +79,7 @@ class TTSMiddleware(Base):
                 variables[cookie] = response.cookies.output(cookie)
 
         self.log.debug(
-            f"middleware: {self.id}  type: {self.type} method: {self.method} "
+            f"[{self.channel.channel_uniqueid}] middleware: {self.id}  type: {self.type} method: {self.method} "
             f"url: {self.url} status: {response.status}"
         )
 

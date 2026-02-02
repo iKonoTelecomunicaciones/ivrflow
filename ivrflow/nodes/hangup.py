@@ -24,15 +24,13 @@ class Hangup(Base):
         )
 
     async def run(self):
-        self.log.info(f"Channel {self.channel.channel_uniqueid} enters hangup node {self.id}")
+        self.log.info(f"[{self.channel.channel_uniqueid}] Entering hangup node {self.id}")
 
         if self.chan:
-            self.log.warning(
-                f"Hangup channel {self.channel.channel_uniqueid} with chan {self.chan}"
-            )
+            self.log.warning(f"[{self.channel.channel_uniqueid}] Hangup with chan {self.chan}")
             await self.asterisk_conn.agi.hangup(channel=self.chan)
         else:
-            self.log.warning(f"Hangup channel {self.channel.channel_uniqueid}")
+            self.log.warning(f"[{self.channel.channel_uniqueid}] Hangup")
             await self.asterisk_conn.agi.hangup()
 
         await self._update_node()

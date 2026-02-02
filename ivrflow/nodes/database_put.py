@@ -28,11 +28,12 @@ class DatabasePut(Base):
         )
 
     async def run(self):
+        self.log.info(f"[{self.channel.channel_uniqueid}] Entering database_put node {self.id}")
         for entry, variable in self.entries.items():
             family, key = [x.strip("/") for x in entry.rsplit("/", 1)]
             db_result = await self.asterisk_conn.agi.database_put(family, key, variable)
             self.log.info(
-                f"node database_put send family,key:{entry} with value:{variable} result {db_result.result}"
+                f"[{self.channel.channel_uniqueid}] Send family,key:{entry} with value:{variable} result {db_result.result}"
             )
 
         await self._update_node()

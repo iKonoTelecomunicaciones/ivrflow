@@ -63,15 +63,19 @@ class Switch(Base):
 
         try:
             self.log.info(
-                f"Get validation of input [{self.id}] for channel [{self.channel.channel_uniqueid}]"
+                f"[{self.channel.channel_uniqueid}] Getting validation of input [{self.id}]"
             )
             result = self.validation
         except Exception as e:
-            self.log.warning(f"An exception has occurred in the pipeline [{self.id} ]:: {e}")
+            self.log.warning(
+                f"[{self.channel.channel_uniqueid}] An exception has occurred in the pipeline [{self.id} ]:: {e}"
+            )
             result = "except"
 
         if not result:
-            self.log.debug(f"Validation value is not found, validate case by case in [{self.id}]")
+            self.log.debug(
+                f"[{self.channel.channel_uniqueid}] Validation value is not found, validate case by case in [{self.id}]"
+            )
             return await self.validate_cases()
 
         o_connection = await self.get_case_by_id(result)
@@ -93,7 +97,7 @@ class Switch(Base):
         for switch_case in self.cases:
             if not switch_case.case and switch_case.id:
                 self.log.warning(
-                    f"You should use the 'validation' field to use case by ID in [{self.id}]"
+                    f"[{self.channel.channel_uniqueid}] You should use the 'validation' field to use case by ID in [{self.id}]"
                 )
                 continue
 
@@ -103,7 +107,7 @@ class Switch(Base):
 
             if case_validation and not isinstance(case_validation, bool):
                 self.log.warning(
-                    f"Case validation [{case_validation}] in [{self.id}] should be boolean"
+                    f"[{self.channel.channel_uniqueid}] Case validation [{case_validation}] in [{self.id}] should be boolean"
                 )
                 continue
 
@@ -114,7 +118,7 @@ class Switch(Base):
             # Get the o_connection of the case
             case_o_connection = self.render_data(switch_case.o_connection)
             self.log.debug(
-                f"The case [{case_o_connection}] has been obtained in the input node [{self.id}]"
+                f"[{self.channel.channel_uniqueid}] The case [{case_o_connection}] has been obtained in the input node [{self.id}]"
             )
 
             # Delete the validation attempts of the channel
@@ -127,7 +131,7 @@ class Switch(Base):
         if not case_o_connection:
             default_case, o_connection = await self.manage_case_exceptions()
             self.log.debug(
-                f"Case validations in [{self.id}] do not match with [{o_connection}] "
+                f"[{self.channel.channel_uniqueid}] Case validations in [{self.id}] do not match with [{o_connection}] "
                 f"the [{default_case}] case will be sought"
             )
 
@@ -153,7 +157,7 @@ class Switch(Base):
             case_o_connection = self.render_data(case_result.get("o_connection"))
 
             self.log.debug(
-                f"The case [{case_o_connection}] has been obtained in the input node [{self.id}]"
+                f"[{self.channel.channel_uniqueid}] The case [{case_o_connection}] has been obtained in the input node [{self.id}]"
             )
 
             if (
@@ -164,7 +168,9 @@ class Switch(Base):
 
         except KeyError:
             default_case, o_connection = await self.manage_case_exceptions()
-            self.log.debug(f"Case [{id}] not found; the [{default_case} case] will be sought")
+            self.log.debug(
+                f"[{self.channel.channel_uniqueid}] Case [{id}] not found; the [{default_case} case] will be sought"
+            )
             return o_connection
 
         if case_o_connection is None or case_o_connection in ["finish", ""]:
@@ -218,16 +224,16 @@ class Switch(Base):
                 del self.VALIDATION_ATTEMPTS_BY_CHANNEL[self.channel.channel_uniqueid]
             case_to_be_used = "attempt_exceeded"
             self.log.critical(
-                f"Validation attempts {channel_validation_attempts} of {self.validation_attempts} "
-                f"for channel {self.channel.channel_uniqueid} set to {case_to_be_used}"
+                f"[{self.channel.channel_uniqueid}] Validation attempts {channel_validation_attempts} of {self.validation_attempts} "
+                f"set to {case_to_be_used}"
             )
         else:
             case_to_be_used = "default"
 
         if self.validation_attempts and case_to_be_used == "default":
             self.log.critical(
-                f"Validation Attempts {channel_validation_attempts} "
-                f"of {self.validation_attempts} for channel {self.channel.channel_uniqueid}"
+                f"[{self.channel.channel_uniqueid}] Validation Attempts {channel_validation_attempts} "
+                f"of {self.validation_attempts}"
             )
             self.VALIDATION_ATTEMPTS_BY_CHANNEL[self.channel.channel_uniqueid] = (
                 channel_validation_attempts + 1

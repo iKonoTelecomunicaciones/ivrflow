@@ -32,7 +32,7 @@ class Verbose(Base):
         )
 
     async def run(self):
-        self.log.info(f"Channel {self.channel.channel_uniqueid} enters verbose node {self.id}")
+        self.log.info(f"[{self.channel.channel_uniqueid}] Entering verbose node {self.id}")
 
         await self.asterisk_conn.agi.verbose(
             message=self.message,

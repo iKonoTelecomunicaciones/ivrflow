@@ -29,10 +29,10 @@ class SetVars(Base):
 
     async def run(self):
         """This function runs the set_var node."""
-        self.log.info(f"Channel {self.channel.channel_uniqueid} enters set_vars node {self.id}")
+        self.log.info(f"[{self.channel.channel_uniqueid}] Entering set_vars node {self.id}")
         if not self.variables:
             self.log.warning(
-                f"The variables in {self.id} have not been set because they are empty"
+                f"[{self.channel.channel_uniqueid}] The variables in {self.id} have not been set because they are empty"
             )
             return
 
@@ -47,6 +47,6 @@ class SetVars(Base):
             if unset_vars:
                 await self.channel.del_variables(variables=unset_vars)
         except ValueError as e:
-            self.log.warning(e)
+            self.log.warning(f"[{self.channel.channel_uniqueid}] Error: {e}")
 
         await self._update_node()

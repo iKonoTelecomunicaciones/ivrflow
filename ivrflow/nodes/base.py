@@ -101,11 +101,13 @@ class Base:
             # If the stack is not empty, get the last node from the stack
             if not self.channel._stack.empty() and self.type != "subroutine":
                 self.log.debug(
-                    f"Getting o_connection from route stack: {self.channel._stack.queue}"
+                    f"[{self.channel.channel_uniqueid}] Getting o_connection from channel stack: {self.channel._stack.queue}"
                 )
                 o_connection = self.channel._stack.get(timeout=3)
 
         if o_connection:
-            self.log.info(f"Go to o_connection node in [{self.id}]: '{o_connection}'")
+            self.log.info(
+                f"[{self.channel.channel_uniqueid}] Go to o_connection node in [{self.id}]: '{o_connection}'"
+            )
 
         return o_connection

@@ -28,12 +28,8 @@ class SetCallerID(Base):
         )
 
     async def run(self):
-        self.log.info(
-            f"Channel {self.channel.channel_uniqueid} enters set_cellerid node {self.id}"
-        )
-        self.log.info(
-            f"Setting CallerID '{self.number}' to channel: {self.channel.channel_uniqueid}"
-        )
+        self.log.info(f"[{self.channel.channel_uniqueid}] Entering set_callerid node {self.id}")
+        self.log.info(f"[{self.channel.channel_uniqueid}] Setting CallerID '{self.number}'")
 
         await self.asterisk_conn.agi.set_callerid(
             number=self.number,

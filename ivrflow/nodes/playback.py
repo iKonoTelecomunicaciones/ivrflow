@@ -42,7 +42,7 @@ class Playback(Base):
         )
 
     async def run(self) -> None:
-        self.log.info(f"Channel {self.channel.channel_uniqueid} enters message node {self.id}")
+        self.log.info(f"[{self.channel.channel_uniqueid}] Entering playback node {self.id}")
 
         if self.middleware:
             middleware_extended_data = self.render_data(

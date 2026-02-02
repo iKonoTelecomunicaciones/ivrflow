@@ -52,7 +52,7 @@ class Record(Base):
         )
 
     async def run(self):
-        self.log.info(f"Channel {self.channel.channel_uniqueid} enters record_file node {self.id}")
+        self.log.info(f"[{self.channel.channel_uniqueid}] Entering record_file node {self.id}")
 
         await self.asterisk_conn.agi.record_file(
             filename=self.file,
