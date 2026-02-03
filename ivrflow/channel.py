@@ -4,12 +4,14 @@ import json
 from logging import getLogger
 from typing import Any, Dict, List, cast
 
+from glom import Delete, PathAccessError, assign, glom
 from mautrix.util.logging import TraceLogger
 
 from .config import Config
 from .db.channel import Channel as DBChannel
 from .db.channel import ChannelState
 from .types import ChannelUniqueID
+from .utils.jq2glom import JQ2Glom
 
 
 class Channel(DBChannel):
@@ -17,6 +19,9 @@ class Channel(DBChannel):
 
     config: Config
     log: TraceLogger = getLogger("ivrflow.channel")
+
+    # JQ2Glom instance
+    _jq2glom: JQ2Glom = JQ2Glom()
 
     def __init__(
         self,
@@ -99,7 +104,27 @@ class Channel(DBChannel):
             The value of the variable with the given id.
 
         """
-        return self._variables.get(variable_id)
+
+        self.log.info(f"[{self.channel_uniqueid}] Getting variable ({variable_id})")
+
+        try:
+            _value = glom(self._variables, self._jq2glom.to_glom_path(variable_id))
+            self.log.debug(
+                f"[{self.channel_uniqueid}] Variable ({variable_id}) found. Value: {_value}"
+            )
+            return _value
+        except PathAccessError as e:
+            # TODO: Compatibility with old variables format
+            old_value = self._variables.get(variable_id)
+            if old_value:
+                await self.del_variable(variable_id)
+                await self.set_variable(variable_id, old_value)
+            return old_value
+        except Exception as e:
+            self.log.error(
+                f"[{self.channel_uniqueid}] Error getting variable ({variable_id}) while using glom: {e}"
+            )
+            return None
 
     async def set_variable(self, variable_id: str, value: Any) -> None:
         """
@@ -124,11 +149,19 @@ class Channel(DBChannel):
         if not variable_id:
             return
 
-        self._variables[variable_id] = value
-        self.variables = json.dumps(self._variables)
         self.log.debug(
-            f"[{self.channel_uniqueid}] Saving variable [{variable_id}] :: content [{repr(value)}]"
+            f"[{self.channel_uniqueid}] Saving variable ({variable_id}). Content: {repr(value)}"
         )
+
+        try:
+            assign(self._variables, self._jq2glom.to_glom_path(variable_id), value, missing=dict)
+        except Exception as e:
+            self.log.error(
+                f"[{self.channel_uniqueid}] Error assigning variable ({variable_id}) to {value}: {e}"
+            )
+            return
+
+        self.variables = json.dumps(self._variables)
         await self.update()
 
     async def set_variables(self, variables: Dict) -> None:
@@ -155,12 +188,14 @@ class Channel(DBChannel):
 
         """
 
+        _node_id = node_id.value if isinstance(node_id, ChannelState) else node_id
+
         self.log.debug(
-            f"[{self.channel_uniqueid}] Updating node: {self.node_id} to"
-            f"[{node_id.value if isinstance(node_id, ChannelState) else node_id}] "
-            f"and his [state: {self.state}] to [{state}]"
+            f"[{self.channel_uniqueid}] will be updated. "
+            f"Node: ([{self.node_id}] => [{_node_id}]) "
+            f"State: ([{self.state}] => [{state}])"
         )
-        self.node_id = node_id.value if isinstance(node_id, ChannelState) else node_id
+        self.node_id = _node_id
         self.state = state
         await self.update()
         self._add_to_cache()
@@ -195,9 +230,25 @@ class Channel(DBChannel):
             self.log.debug(f"[{self.channel_uniqueid}] Variable [{variable_id}] does not exists")
             return
 
-        content = self._variables.pop(variable_id, None)
+        self.log.debug(f"[{self.channel_uniqueid}] Removing variable ({variable_id})")
+
+        try:
+            glom(self._variables, Delete(self._jq2glom.to_glom_path(variable_id)))
+        except PathAccessError as e:
+            # TODO: Remove with old variables format
+            if not self._variables.get(variable_id):
+                self.log.warning(
+                    f"[{self.channel_uniqueid}] Variable ({variable_id}) does not exists"
+                )
+                return
+
+            self.log.info(f"[{self.channel_uniqueid}] Deleted variable ({variable_id}) old format")
+            self._variables.pop(variable_id, None)
+        except Exception as e:
+            self.log.error(
+                f"[{self.channel_uniqueid}] Error deleting variable ({variable_id}): {e}"
+            )
+            return
+
         self.variables = json.dumps(self._variables)
-        self.log.debug(
-            f"[{self.channel_uniqueid}] Removing variable [{variable_id}] :: content [{repr(content)}]"
-        )
         await self.update()
