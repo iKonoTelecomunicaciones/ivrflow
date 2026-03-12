@@ -3,6 +3,7 @@ from logging import getLogger
 
 import phonenumbers
 import pytz
+from fuzzywuzzy import fuzz
 from jinja2 import Environment
 from mautrix.util.logging import TraceLogger
 from num2words import num2words
@@ -138,6 +139,24 @@ def format_phone_number(text: str, country_code: str = "CO", fmt: str | None = N
     return result
 
 
+def compare_ratio(text: str, base_text: str, percentage: bool = True) -> bool:
+    """Compares two texts and returns the similarity ratio
+
+    Args:
+        text (str): The text to compare
+        base_text (str): The base text to compare
+        percentage (bool, optional): If False, returns a float between 0 and 1, otherwise returns an integer between 0 and 100.
+
+    Returns:
+        int | float: The similarity ratio
+
+    Jinja usage:
+        {{ compare_ratio("Lorem ipsum dolor sit", "Lorem ipsum dolor sit amet", percentage=False) }}
+    """
+    score = fuzz.ratio(text.lower(), base_text.lower())
+    return score if percentage else score / 100
+
+
 def register_filters(env: Environment):
     """Register the filters in the environment"""
 
@@ -147,5 +166,6 @@ def register_filters(env: Environment):
             "dir": get_attrs,
             "num2words": num_to_words,
             "phone_number_fmt": format_phone_number,
+            "compare_ratio": compare_ratio,
         }
     )
