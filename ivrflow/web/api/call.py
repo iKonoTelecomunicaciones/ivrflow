@@ -2,6 +2,7 @@ from logging import Logger, getLogger
 
 from aioagi.ami.action import AMIAction
 from aioagi.ami.manager import AMIManager
+from aioagi.ami.message import AMIMessage
 from aiohttp import web
 
 from ..base import get_config, routes
@@ -50,5 +51,6 @@ async def call(request: web.Request) -> web.Response:
         }
     )
 
-    result = await manager.send_action(action)
-    return resp.success_response(data=result.body, uuid=uuid)
+    result: AMIMessage = await manager.send_action(action)
+    formatted_result = {k: v for k, v in result.items()}
+    return resp.success_response(data=formatted_result, uuid=uuid)
