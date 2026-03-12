@@ -32,6 +32,15 @@ class Config(BaseFileConfig):
         copy("server.base_path")
         copy("server.unshared_secret")
 
+        # AMI
+        copy("ami.enabled")
+        copy("ami.hostname")
+        copy("ami.port")
+        copy("ami.username")
+        copy("ami.password")
+
+        copy_dict("ami.originate_command")
+
         shared_secret = self["server.unshared_secret"]
         if shared_secret is None or shared_secret == "generate":
             base["server.unshared_secret"] = self._new_token()

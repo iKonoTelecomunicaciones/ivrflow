@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 
+from aioagi.ami.manager import AMIManager
 from aiohttp import web
 from aiohttp.abc import AbstractAccessLogger
 
@@ -23,8 +24,13 @@ class AccessLogger(AbstractAccessLogger):
 class APIServer:
     log: logging.Logger = logging.getLogger("ivrflow.server")
 
-    def __init__(self, loop: asyncio.AbstractEventLoop, flow_utils: FlowUtils) -> None:
-        management_api = ManagementAPI(flow_utils=flow_utils)
+    def __init__(
+        self,
+        loop: asyncio.AbstractEventLoop,
+        flow_utils: FlowUtils,
+        ami_manager: AMIManager | None = None,
+    ) -> None:
+        management_api = ManagementAPI(flow_utils=flow_utils, ami_manager=ami_manager)
         self.app = web.Application(loop=loop, client_max_size=100 * 1024 * 1024)
         self.app.add_subapp(config["server.base_path"], management_api.app)
         self.runner = web.AppRunner(self.app, access_log_class=AccessLogger)

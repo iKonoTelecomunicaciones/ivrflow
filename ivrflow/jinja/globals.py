@@ -66,3 +66,10 @@ def register_globals(env: Environment):
     Jinja usage:
         {{ env() }}
     """
+
+    env.globals.update(now=lambda: datetime.now())
+    """
+    Returns the current date and time
+    Jinja usage:
+        {{ now() }}
+    """
