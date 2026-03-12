@@ -23,7 +23,7 @@ async def call(request: web.Request) -> web.Response:
         return resp.internal_error("AMI manager not found", uuid)
 
     data = await request.json()
-    exten = data.get("phone")
+    phone = data.get("phone")
     name = data.get("name")
     variables = data.get("variables", {})
 
@@ -32,7 +32,7 @@ async def call(request: web.Request) -> web.Response:
     priority = config["ami.originate_command.priority"]
     timeout = config["ami.originate_command.timeout"]
 
-    variables["TELEFONO"] = exten
+    variables["TELEFONO"] = phone
     variables["CLIENT_NAME"] = name
     variables["CAMPAIGN"] = config["ami.originate_command.campaign"]
     variables["SUBCAMPAIGN"] = config["ami.originate_command.subcampaign"]
@@ -40,11 +40,11 @@ async def call(request: web.Request) -> web.Response:
     action = AMIAction(
         {
             "Action": "Originate",
-            "Channel": channel,
+            "Channel": f"{channel}/{phone}",
             "Context": context,
-            "Exten": exten,
+            "Exten": phone,
             "Priority": priority,
-            "CallerID": exten,
+            "CallerID": phone,
             "Timeout": str(timeout),
             "Variable": [f"{key.upper()}={value}" for key, value in variables.items()],
             "Async": "true",
