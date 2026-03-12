@@ -14,6 +14,7 @@ lark==1.2.2
 mautrix>=0.19.16,<=0.20.0
 num2words==0.5.14
 phonenumbers==9.0.9
+python-Levenshtein==0.25.1
 pytz==2025.2
 ruamel.yaml>=0.15.35,<0.18
 sqids==0.4.0
