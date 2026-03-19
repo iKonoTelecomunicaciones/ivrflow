@@ -4,6 +4,7 @@ import logging
 from typing import Dict
 
 import aiohttp_cors
+from aioagi.ami.manager import AMIManager
 from aiohttp import web
 from aiohttp_swagger3 import SwaggerDocs, SwaggerInfo, SwaggerUiSettings
 from mautrix.util.logging import TraceLogger
@@ -21,8 +22,9 @@ class ManagementAPI:
     log: TraceLogger = logging.getLogger("ivrflow.management_api")
     app: web.Application
 
-    def __init__(self, flow_utils: FlowUtils) -> None:
+    def __init__(self, flow_utils: FlowUtils, ami_manager: AMIManager | None = None) -> None:
         self.app = web.Application()
+        self.app["ami_manager"] = ami_manager
         set_config(config=config, flow_utils=flow_utils)
 
         swagger = SwaggerDocs(

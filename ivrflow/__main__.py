@@ -13,8 +13,10 @@ from aioagi.urldispathcer import AGIView
 from aiohttp import ClientSession, TraceConfig
 from mautrix.util.async_db import Database, DatabaseException
 
+from .safe_ami_manager import SafeAMIManager
+
 try:
-    import uvloop
+    import uvloop  # type: ignore
 except ImportError:
     uvloop = None
 
@@ -28,7 +30,6 @@ from .email_client import EmailClient
 from .flow import Flow
 from .flow_utils import EmailServer, FlowUtils
 from .http_middleware import end_auth_middleware, start_auth_middleware
-from .models import Flow as FlowModel
 from .nodes import Base
 from .web import APIServer
 
@@ -41,6 +42,7 @@ class IVRFlow(AGIView):
     http_client: ClientSession
     flow_utils: "FlowUtils" | None = None
     management_api: APIServer
+    ami_connect_task: asyncio.Task | None = None
 
     @property
     def flow_name(self):
@@ -95,7 +97,9 @@ class IVRFlow(AGIView):
 
     @classmethod
     def init_management_api(cls) -> None:
-        cls.management_api = APIServer(flow_utils=cls.flow_utils, loop=cls.loop)
+        cls.management_api = APIServer(
+            flow_utils=cls.flow_utils, loop=cls.loop, ami_manager=cls.ami_manager
+        )
 
     @classmethod
     def init_flow_complements(cls):
@@ -104,11 +108,22 @@ class IVRFlow(AGIView):
 
     @classmethod
     async def stop(cls) -> None:
+        if config["ami.enabled"]:
+            log.info("Stopping AMI...")
+            if cls.ami_connect_task and not cls.ami_connect_task.done():
+                cls.ami_connect_task.cancel()
+                try:
+                    await cls.ami_connect_task
+                except asyncio.CancelledError:
+                    pass
+            await cls.ami_manager.close()
         log.info("Stopping http client...")
         await cls.http_client.close()
 
     @classmethod
     async def start(cls):
+        if config["ami.enabled"]:
+            cls.ami_connect_task = asyncio.create_task(cls.ami_manager.connect())
         await cls.start_db()
         if cls.flow_utils:
             asyncio.create_task(cls.start_email_connections())
@@ -138,6 +153,7 @@ class IVRFlow(AGIView):
         cls.prepare_loop()
         cls.prepare_db()
         cls.init_http_client()
+        cls.prepare_ami()
         cls.init_management_api()
 
     @classmethod
@@ -155,6 +171,21 @@ class IVRFlow(AGIView):
             log.warning("Running in debug mode")
             cls.loop.set_debug(True)
 
+    @classmethod
+    def prepare_ami(cls) -> None:
+        if config["ami.enabled"]:
+            cls.ami_manager = SafeAMIManager(
+                app=cls,
+                title="AMI",
+                host=config["ami.hostname"],
+                port=config["ami.port"],
+                username=config["ami.username"],
+                secret=config["ami.password"],
+                reconnect_delay=float(config["ami.reconnect_delay"]),
+            )
+        else:
+            cls.ami_manager = None
+
     async def sip(self):
         await self.algorithm()
 
@@ -169,6 +200,9 @@ class IVRFlow(AGIView):
         channel = await Channel.get_by_channel_uniqueid(
             channel_uniqueid=self.request.headers["agi_uniqueid"]
         )
+
+        if not await channel.get_variable("agi_vars"):
+            await channel.set_variable("agi_vars", self.request.headers)
 
         flow = Flow()
         await flow.load_flow(self.flow_name)
@@ -188,8 +222,9 @@ class IVRFlow(AGIView):
             await channel.update_ivr(node_id="start")
             return
 
-        log.info(f"[{channel.channel_uniqueid}] Executing Node: [{node.id}]")
-        log.debug(f"[{channel.channel_uniqueid}] The [node: {node.id}] [state: {channel.state}]")
+        log.info(
+            f"[{channel.channel_uniqueid}] Executing [node: {node.id}] [state: {channel.state}]"
+        )
 
         try:
             await node.run()

@@ -47,7 +47,7 @@ def register_globals(env: Environment):
     """
 
     env.globals.update(match=lambda pattern, value: bool(match(pattern, value)))
-    """
+    r"""
     Validates if a pattern matches a variable
     Jinja usage:
         {{ match("^(0[1-9]|[12][0-9]|3[01])\s(0[1-9]|1[012])\s(19[0-9][0-9]|20[0-9][0-9])$", "14 09 1999") }}

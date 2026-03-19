@@ -16,7 +16,7 @@ class Case(SerializableAttrs):
 
 @dataclass
 class Switch(FlowObject):
-    """
+    r"""
     ## Switch
 
     A switch type node allows to validate the content of a jinja variable,

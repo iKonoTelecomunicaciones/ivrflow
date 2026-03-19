@@ -35,6 +35,22 @@ server:
   # Set to "generate" to generate and save a new token at startup.
   unshared_secret: generate
 
+ami:
+  enabled: false
+  hostname: localhost
+  port: 5038
+  username: admin
+  password: secretfoo
+  reconnect_delay: 5
+
+  originate_command:
+    channel: "SIP/Proxy"
+    campaign: "Outgoing"
+    subcampaign: "Outgoing"
+    context: default
+    priority: 1
+    timeout: 20000
+
 logging:
   version: 1
   disable_existing_loggers: true
@@ -61,7 +77,7 @@ logging:
       level: DEBUG
       handlers:
         - console
-      propagate: true
+      propagate: false
     aioagi:
       level: DEBUG
       handlers:
@@ -81,4 +97,9 @@ logging:
       level: INFO
       handlers:
       - console
+      propagate: false
+    aioagi.ami:
+      level: INFO
+      handlers:
+        - console
       propagate: false
