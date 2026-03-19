@@ -34,3 +34,4 @@ class MiddlewareType(SerializableEnum):
     basic = "basic"
     tts = "tts"
     asr = "asr"
+    llm = "llm"

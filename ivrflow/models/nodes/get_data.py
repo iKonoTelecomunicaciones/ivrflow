@@ -27,6 +27,9 @@ class GetData(Switch):
                 prompt_file: "{{ tts_azure.file }}"
                 progress_sound: "custom/progress"
                 record_path_variable: "asr_file_path"
+            llm:
+                prompt: "You are an assistant specializing in measuring the similarity between two texts."
+                question: "12 = twelve"
         timeout: 5
         max_digits: 1
         dtmf_input: opt
