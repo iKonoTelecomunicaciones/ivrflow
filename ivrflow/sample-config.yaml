@@ -41,6 +41,7 @@ ami:
   port: 5038
   username: admin
   password: secretfoo
+  reconnect_delay: 5
 
   originate_command:
     channel: "SIP/Proxy"
