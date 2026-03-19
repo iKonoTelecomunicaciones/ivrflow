@@ -38,6 +38,7 @@ class Config(BaseFileConfig):
         copy("ami.port")
         copy("ami.username")
         copy("ami.password")
+        copy("ami.reconnect_delay")
 
         copy_dict("ami.originate_command")
 

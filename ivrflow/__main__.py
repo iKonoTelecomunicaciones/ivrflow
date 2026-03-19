@@ -7,15 +7,16 @@ from time import time
 from typing import Dict, Tuple
 
 from aioagi import runner
-from aioagi.ami.manager import AMIManager
 from aioagi.app import AGIApplication
 from aioagi.exceptions import AGIAppError
 from aioagi.urldispathcer import AGIView
 from aiohttp import ClientSession, TraceConfig
 from mautrix.util.async_db import Database, DatabaseException
 
+from .safe_ami_manager import SafeAMIManager
+
 try:
-    import uvloop
+    import uvloop  # type: ignore
 except ImportError:
     uvloop = None
 
@@ -29,7 +30,6 @@ from .email_client import EmailClient
 from .flow import Flow
 from .flow_utils import EmailServer, FlowUtils
 from .http_middleware import end_auth_middleware, start_auth_middleware
-from .models import Flow as FlowModel
 from .nodes import Base
 from .web import APIServer
 
@@ -42,6 +42,7 @@ class IVRFlow(AGIView):
     http_client: ClientSession
     flow_utils: "FlowUtils" | None = None
     management_api: APIServer
+    ami_connect_task: asyncio.Task | None = None
 
     @property
     def flow_name(self):
@@ -109,6 +110,12 @@ class IVRFlow(AGIView):
     async def stop(cls) -> None:
         if config["ami.enabled"]:
             log.info("Stopping AMI...")
+            if cls.ami_connect_task and not cls.ami_connect_task.done():
+                cls.ami_connect_task.cancel()
+                try:
+                    await cls.ami_connect_task
+                except asyncio.CancelledError:
+                    pass
             await cls.ami_manager.close()
         log.info("Stopping http client...")
         await cls.http_client.close()
@@ -116,7 +123,7 @@ class IVRFlow(AGIView):
     @classmethod
     async def start(cls):
         if config["ami.enabled"]:
-            await cls.ami_manager.connect()
+            cls.ami_connect_task = asyncio.create_task(cls.ami_manager.connect())
         await cls.start_db()
         if cls.flow_utils:
             asyncio.create_task(cls.start_email_connections())
@@ -167,13 +174,14 @@ class IVRFlow(AGIView):
     @classmethod
     def prepare_ami(cls) -> None:
         if config["ami.enabled"]:
-            cls.ami_manager = AMIManager(
+            cls.ami_manager = SafeAMIManager(
                 app=cls,
                 title="AMI",
                 host=config["ami.hostname"],
                 port=config["ami.port"],
                 username=config["ami.username"],
                 secret=config["ami.password"],
+                reconnect_delay=float(config["ami.reconnect_delay"]),
             )
         else:
             cls.ami_manager = None
