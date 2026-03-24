@@ -6,11 +6,11 @@ from ..types import MiddlewareType
 from .switch import Switch
 
 if TYPE_CHECKING:
-    from ..middlewares import ASRMiddleware, TTSMiddleware
+    from ..middlewares import ASRMiddleware, LLMMiddleware, TTSMiddleware
 
 
 class GetData(Switch):
-    middlewares: Union["TTSMiddleware", "ASRMiddleware"] = []
+    middlewares: Union["TTSMiddleware", "ASRMiddleware", "LLMMiddleware"] = []
 
     def __init__(self, get_data_content: GetDataModel, channel: Channel, default_variables: Dict):
         super().__init__(get_data_content, channel, default_variables)
@@ -54,6 +54,16 @@ class GetData(Switch):
                 self.content.middlewares.get(asr_middleware.id)
             )
             await asr_middleware.run(middleware_extended_data)
+
+        llm_middleware: LLMMiddleware = middlewares_sorted.get(MiddlewareType.llm)
+        if llm_middleware:
+            self.log.info(
+                f"[{self.channel.channel_uniqueid}] Running LLM middleware {llm_middleware.id}"
+            )
+            middleware_extended_data = self.render_data(
+                self.content.middlewares.get(llm_middleware.id)
+            )
+            await llm_middleware.run(middleware_extended_data)
         else:
             response = await self.asterisk_conn.agi.get_data(
                 filename=self.file,

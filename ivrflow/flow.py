@@ -7,7 +7,7 @@ from mautrix.util.logging import TraceLogger
 
 from .channel import Channel
 from .flow_utils import FlowUtils
-from .middlewares import ASRMiddleware, HTTPMiddleware, TTSMiddleware
+from .middlewares import ASRMiddleware, HTTPMiddleware, LLMMiddleware, TTSMiddleware
 from .models import Flow as FlowModel
 from .nodes import (
     Answer,
@@ -136,6 +136,12 @@ class Flow:
         elif middleware_type == MiddlewareType.asr:
             middleware_initialized = ASRMiddleware(
                 asr_middleware_content=middleware_model,
+                channel=channel,
+                default_variables=self.flow_variables,
+            )
+        elif middleware_type == MiddlewareType.llm:
+            middleware_initialized = LLMMiddleware(
+                llm_middleware_content=middleware_model,
                 channel=channel,
                 default_variables=self.flow_variables,
             )

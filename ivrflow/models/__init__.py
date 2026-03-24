@@ -1,7 +1,7 @@
 from .flow import Flow
 from .flow_object import FlowObject
 from .flow_utils import FlowUtils
-from .middlewares import ASRMiddleware, HTTPMiddleware, TTSMiddleware
+from .middlewares import ASRMiddleware, HTTPMiddleware, LLMMiddleware, TTSMiddleware
 from .nodes import (
     Answer,
     Case,

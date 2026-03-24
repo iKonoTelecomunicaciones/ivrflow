@@ -9,7 +9,7 @@ from mautrix.types import SerializableAttrs
 from mautrix.util.logging import TraceLogger
 
 from ..types import MiddlewareType
-from .middlewares import ASRMiddleware, EmailServer, HTTPMiddleware, TTSMiddleware
+from .middlewares import ASRMiddleware, EmailServer, HTTPMiddleware, LLMMiddleware, TTSMiddleware
 
 log: TraceLogger = logging.getLogger("ivrflow.models.flow_utils")
 
@@ -56,6 +56,8 @@ class FlowUtils(SerializableAttrs):
             return TTSMiddleware(**middleware)
         elif middleware_type == MiddlewareType.asr:
             return ASRMiddleware(**middleware)
+        elif middleware_type == MiddlewareType.llm:
+            return LLMMiddleware(**middleware)
         else:
             log.warning(f"Middleware type {middleware_type} not found")
             return
