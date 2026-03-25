@@ -75,7 +75,7 @@ class Flow:
 
     @property
     def flow_variables(self) -> Dict:
-        return self.data.flow_variables
+        return {"flow": self.data.flow_variables or {}}
 
     @classmethod
     def init_cls(cls, flow_utils: FlowUtils) -> None:

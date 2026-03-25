@@ -10,8 +10,10 @@ from mautrix.util.logging import TraceLogger
 from .config import Config
 from .db.channel import Channel as DBChannel
 from .db.channel import ChannelState
+from .scope import Scope
 from .types import ChannelUniqueID
 from .utils.jq2glom import JQ2Glom
+from .utils.util import Util
 
 
 class Channel(DBChannel):
@@ -32,7 +34,6 @@ class Channel(DBChannel):
         variables: str = "{}",
         stack: str = "{}",
     ) -> None:
-        self._variables: Dict = json.loads(variables)
         super().__init__(
             id=id,
             channel_uniqueid=channel_uniqueid,
@@ -50,7 +51,6 @@ class Channel(DBChannel):
     async def clean_up(self) -> None:
         del self.by_channel_uniqueid[self.channel_uniqueid]
         self.variables = "{}"
-        self._variables = {}
         self.node_id = "start"
         self.state = None
         await self.update()
@@ -78,7 +78,9 @@ class Channel(DBChannel):
         except KeyError:
             pass
 
-        channel = cast(cls, await super().get_by_channel_uniqueid(channel_uniqueid))
+        channel: Channel | None = cast(
+            cls, await super().get_by_channel_uniqueid(channel_uniqueid)
+        )
 
         if channel is not None:
             channel._add_to_cache()
@@ -105,26 +107,22 @@ class Channel(DBChannel):
 
         """
 
-        self.log.info(f"[{self.channel_uniqueid}] Getting variable ({variable_id})")
+        scope, key = Util.get_scope_and_key(variable_id)
 
         try:
-            _value = glom(self._variables, self._jq2glom.to_glom_path(variable_id))
+            _value = glom(self._variables, self._jq2glom.to_glom_path(f"{scope.value}.{key}"))
             self.log.debug(
-                f"[{self.channel_uniqueid}] Variable ({variable_id}) found. Value: {_value}"
+                f"[{self.channel_uniqueid}] [VAR][GET] {scope.value}.{key} => {repr(_value)}"
             )
             return _value
         except PathAccessError as e:
-            # TODO: Compatibility with old variables format
-            old_value = self._variables.get(variable_id)
-            if old_value:
-                await self.del_variable(variable_id)
-                await self.set_variable(variable_id, old_value)
-            return old_value
-        except Exception as e:
-            self.log.error(
-                f"[{self.channel_uniqueid}] Error getting variable ({variable_id}) while using glom: {e}"
+            self.log.debug(
+                f"[{self.channel_uniqueid}] [VAR][GET] {scope.value}.{key} => Not found"
             )
-            return None
+            return
+        except Exception as e:
+            self.log.error(f"[{self.channel_uniqueid}] [VAR][GET] {scope.value}.{key} => {e}")
+            return
 
     async def set_variable(self, variable_id: str, value: Any) -> None:
         """
@@ -149,20 +147,31 @@ class Channel(DBChannel):
         if not variable_id:
             return
 
-        self.log.debug(
-            f"[{self.channel_uniqueid}] Saving variable ({variable_id}). Content: {repr(value)}"
-        )
-
-        try:
-            assign(self._variables, self._jq2glom.to_glom_path(variable_id), value, missing=dict)
-        except Exception as e:
+        scope, key = Util.get_scope_and_key(variable_id)
+        if not key:
             self.log.error(
-                f"[{self.channel_uniqueid}] Error assigning variable ({variable_id}) to {value}: {e}"
+                f"[{self.channel_uniqueid}] [VAR][SET] Invalid variable id (empty key): {variable_id!r}"
             )
             return
 
-        self.variables = json.dumps(self._variables)
-        await self.update()
+        try:
+            entry = Scope(channel=self).resolve(scope)
+        except Exception as e:
+            self.log.error(str(e))
+            return
+
+        variables = entry.get_scope_vars()
+
+        try:
+            assign(variables, self._jq2glom.to_glom_path(key), value, missing=dict)
+            self.log.debug(
+                f"[{self.channel_uniqueid}] [VAR][SET] {scope.value}.{key} = {repr(value)}"
+            )
+        except Exception as e:
+            self.log.error(f"[{self.channel_uniqueid}] [VAR][SET] {scope.value}.{key} => {e}")
+            return
+
+        await entry.update()
 
     async def set_variables(self, variables: Dict) -> None:
         """It takes a dictionary of variable IDs and values, and sets the variables to the values
@@ -222,33 +231,29 @@ class Channel(DBChannel):
         if not variable_id:
             return
 
-        if not self._variables:
-            self.log.debug(f"[{self.channel_uniqueid}] Variables are empty")
-            return
-
-        if variable_id and not self._variables.get(variable_id):
-            self.log.debug(f"[{self.channel_uniqueid}] Variable [{variable_id}] does not exists")
-            return
-
-        self.log.debug(f"[{self.channel_uniqueid}] Removing variable ({variable_id})")
+        scope, key = Util.get_scope_and_key(variable_id)
 
         try:
-            glom(self._variables, Delete(self._jq2glom.to_glom_path(variable_id)))
-        except PathAccessError as e:
-            # TODO: Remove with old variables format
-            if not self._variables.get(variable_id):
-                self.log.warning(
-                    f"[{self.channel_uniqueid}] Variable ({variable_id}) does not exists"
-                )
-                return
-
-            self.log.info(f"[{self.channel_uniqueid}] Deleted variable ({variable_id}) old format")
-            self._variables.pop(variable_id, None)
+            entry = Scope(channel=self).resolve(scope)
         except Exception as e:
-            self.log.error(
-                f"[{self.channel_uniqueid}] Error deleting variable ({variable_id}): {e}"
-            )
+            self.log.error(str(e))
             return
 
-        self.variables = json.dumps(self._variables)
-        await self.update()
+        variables = entry.get_scope_vars()
+        if not variables:
+            self.log.debug(f"[{self.channel_uniqueid}] Variables in scope {scope.value} are empty")
+            return
+
+        try:
+            glom(variables, Delete(self._jq2glom.to_glom_path(key)))
+            self.log.debug(f"[{self.channel_uniqueid}] [VAR][DEL] {scope.value}.{key} => Deleted")
+        except PathAccessError as e:
+            self.log.debug(
+                f"[{self.channel_uniqueid}] [VAR][DEL] {scope.value}.{key} => Not found"
+            )
+            return
+        except Exception as e:
+            self.log.error(f"[{self.channel_uniqueid}] [VAR][DEL] {scope.value}.{key} => {e}")
+            return
+
+        await entry.update()

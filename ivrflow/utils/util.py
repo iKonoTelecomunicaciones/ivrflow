@@ -10,6 +10,7 @@ from jinja2 import TemplateSyntaxError, UndefinedError
 from mautrix.util.logging import TraceLogger
 
 from ..jinja.env import jinja_env
+from ..types import Scopes
 
 log: TraceLogger = getLogger("ivrflow.util")
 
@@ -145,3 +146,35 @@ class Util:
                 return item
         else:
             return item
+
+    @staticmethod
+    def get_scope_and_key(
+        variable_id: str,
+        default_scope: Scopes = Scopes.ROUTE,
+    ) -> tuple[Scopes, str]:
+        """Get the scope and key from a variable id
+
+        Parameters
+        ----------
+        variable_id : str
+            The variable id to get the scope and key from.
+        default_scope : Scopes
+            The default scope to use if the variable id does not have a scope.
+
+        Returns
+        -------
+            A tuple containing the scope and key.
+        """
+        if isinstance(variable_id, int):
+            variable_id = str(variable_id)
+
+        parts = variable_id.split(".", maxsplit=1)
+
+        if len(parts) == 2 and parts[0] in Scopes._value2member_map_:
+            scope: Scopes = Scopes._value2member_map_.get(parts[0], default_scope)
+            key = parts[1]
+        else:
+            scope: Scopes = default_scope
+            key = variable_id
+
+        return scope, key

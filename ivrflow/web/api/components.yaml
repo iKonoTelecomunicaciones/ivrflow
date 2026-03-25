@@ -258,6 +258,15 @@ components:
             type: message
             name: message_1
             o_connection: message_2
+    GetVariablesOk:
+      type: object
+      properties:
+        route:
+          type: object
+          additionalProperties: true
+        hook:
+          type: object
+          additionalProperties: true
 
     # Error schemas
     ErrorReadingData:
@@ -776,3 +785,32 @@ components:
           example:
             detail:
               message: Flow with ID 1 not found in the database
+    GetVariablesSuccess:
+      description: Get variables success.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GetVariablesOk"
+          example:
+            variables:
+              route:
+                variable_1: value_1
+                variable_2: value_2
+              hook:
+                variable_3: value_3
+                variable_4: value_4
+    GetVariablesNotFound:
+      description: Get variables not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/BaseResponseDetailMessage"
+          examples:
+            ChannelNotFound:
+              value:
+                detail:
+                  message: Channel with uniqueid '1234567890' not found
+            ScopesNotFound:
+              value:
+                detail:
+                  message: Scopes not found
