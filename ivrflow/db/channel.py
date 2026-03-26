@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from enum import Enum
 from queue import LifoQueue
-from typing import TYPE_CHECKING, ClassVar, Dict
+from typing import TYPE_CHECKING, ClassVar
 
 from asyncpg import Record
 from attr import dataclass, ib
@@ -26,7 +26,7 @@ class Channel:
 
     id: int
     channel_uniqueid: ChannelUniqueID
-    variables: Dict
+    variables: str
     node_id: str
     state: ChannelState | str | None = ib(default=None)
     stack: str = ib(default="{}")
@@ -69,18 +69,31 @@ class Channel:
         q = f"SELECT id, {cls._columns} FROM channel WHERE channel_uniqueid=$1"
         row = await cls.db.fetchrow(q, channel_uniqueid)
 
-        if not row:
-            return
-
-        return cls._from_row(row)
+        return cls._from_row(row) if row else None
 
     async def insert(self) -> str:
         q = f"INSERT INTO channel ({self._columns}) VALUES ($1, $2, $3, $4, $5)"
         await self.db.execute(q, *self.values)
 
+    @property
+    def _variables(self) -> dict:
+        if not hasattr(self, "_vars_cache"):
+            self._vars_cache: dict = json.loads(self.variables or "{}")
+        return self._vars_cache
+
+    def flush_vars(self):
+        if hasattr(self, "_vars_cache"):
+            self.variables = json.dumps(self._vars_cache)
+
     async def update(self) -> None:
+        self.flush_vars()
         q = (
             "UPDATE channel SET variables = $2, node_id = $3, state = $4, stack=$5 "
             "WHERE channel_uniqueid = $1"
         )
         await self.db.execute(q, *self.values)
+
+    async def update_variables(self) -> None:
+        self.flush_vars()
+        q = "UPDATE channel SET variables = $2 WHERE channel_uniqueid = $1"
+        await self.db.execute(q, self.channel_uniqueid, self.variables)

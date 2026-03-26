@@ -35,3 +35,8 @@ class MiddlewareType(SerializableEnum):
     tts = "tts"
     asr = "asr"
     llm = "llm"
+
+
+class Scopes(SerializableEnum):
+    ROUTE = "route"
+    HOOK = "hook"
