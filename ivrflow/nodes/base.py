@@ -8,6 +8,7 @@ from aiohttp import ClientSession
 
 from ..channel import Channel
 from ..config import Config
+from ..db.channel import ChannelState
 from ..utils import Util
 
 
@@ -111,3 +112,24 @@ class Base:
             )
 
         return o_connection
+
+    async def _update_node(self, o_connection: str = None, cases: list = None):
+        """Updates the node in the database.
+
+        Parameters
+        ----------
+        o_connection : str
+            The o_connection of the node.
+        cases : list
+            The cases of the node.
+        """
+        channel_state = self.channel.state
+        state = None
+        validate = cases if cases is not None else o_connection
+
+        if channel_state is ChannelState.HANGUP:
+            state = channel_state
+        elif not validate:
+            state = ChannelState.END
+
+        await self.channel.update_ivr(node_id=o_connection, state=state)

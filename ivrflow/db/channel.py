@@ -17,7 +17,7 @@ fake_db = Database.create("") if TYPE_CHECKING else None
 class ChannelState(Enum):
     START = "start"
     END = "end"
-    INPUT = "input"
+    HANGUP = "hangup"
 
 
 @dataclass

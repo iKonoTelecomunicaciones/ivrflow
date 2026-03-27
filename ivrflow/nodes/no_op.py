@@ -23,12 +23,6 @@ class NoOp(Base):
     def o_connection(self) -> str:
         return self.get_o_connection()
 
-    async def _update_node(self):
-        await self.channel.update_ivr(
-            node_id=self.o_connection,
-            state=ChannelState.END if not self.o_connection else None,
-        )
-
     async def run(self) -> None:
         self.log.info(f"[{self.channel.channel_uniqueid}] Entering no_op node {self.id}")
 
@@ -41,4 +35,4 @@ class NoOp(Base):
                 f"all variables: {repr(self.channel._variables | self.default_variables)}"
             )
 
-        await self._update_node()
+        await self._update_node(o_connection=self.o_connection)

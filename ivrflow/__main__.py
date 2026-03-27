@@ -8,7 +8,7 @@ from typing import Dict, Tuple
 
 from aioagi import runner
 from aioagi.app import AGIApplication
-from aioagi.exceptions import AGIAppError
+from aioagi.exceptions import AGIAppError, AGIHangup
 from aioagi.urldispathcer import AGIView
 from aiohttp import ClientSession, TraceConfig
 from mautrix.util.async_db import Database, DatabaseException
@@ -30,7 +30,7 @@ from .email_client import EmailClient
 from .flow import Flow
 from .flow_utils import EmailServer, FlowUtils
 from .http_middleware import end_auth_middleware, start_auth_middleware
-from .nodes import Base
+from .nodes import Base, Email, HTTPRequest, NoOp, SetVars, Switch
 from .web import APIServer
 
 log: Logger = getLogger("ivrflow.main")
@@ -43,6 +43,7 @@ class IVRFlow(AGIView):
     flow_utils: "FlowUtils" | None = None
     management_api: APIServer
     ami_connect_task: asyncio.Task | None = None
+    ALLOWED_AFTER_HANGUP_NODES = (HTTPRequest, Switch, SetVars, Email, NoOp)
 
     @property
     def flow_name(self):
@@ -197,12 +198,10 @@ class IVRFlow(AGIView):
 
     async def post_init(self) -> Tuple[Flow, Channel]:
         Base.init_cls(config=config, asterisk_conn=self.request, session=self.http_client)
-        channel = await Channel.get_by_channel_uniqueid(
-            channel_uniqueid=self.request.headers["agi_uniqueid"]
-        )
+        uniqueid: str = self.request.headers["agi_uniqueid"]
 
-        if not await channel.get_variable("agi_vars"):
-            await channel.set_variable("agi_vars", self.request.headers)
+        channel = await Channel.get_by_channel_uniqueid(channel_uniqueid=uniqueid)
+        await channel.set_variable("uniqueid", uniqueid)
 
         flow = Flow()
         await flow.load_flow(self.flow_name)
@@ -214,33 +213,55 @@ class IVRFlow(AGIView):
         channel: Channel
 
         flow, channel = await self.post_init()
+        uid: str = channel.channel_uniqueid
 
-        node = flow.node(channel=channel)
+        reason = "completed"
+        node = None
 
-        if node is None:
-            log.debug(f"[{channel.channel_uniqueid}] does not have a node")
-            await channel.update_ivr(node_id="start")
-            return
+        while channel.state != ChannelState.END:
+            node = flow.node(channel=channel)
+            if node is None:
+                reason = "invalid_node"
+                break
+
+            if channel.state == ChannelState.HANGUP and not isinstance(
+                node, self.ALLOWED_AFTER_HANGUP_NODES
+            ):
+                reason = "hangup_node_not_allowed"
+                break
+
+            try:
+                log.debug(
+                    f"[{uid}] Starting node: ({node.id}) state: ({channel.state}) type: ({node.type})"
+                )
+                await node.run()
+            except (AGIAppError, AGIHangup) as e:
+                hangup_var = "hook.on_hangup.node_id"
+                next_node_id = await channel.get_variable(hangup_var)
+                reason = "hangup_detected"
+
+                log.warning(
+                    f"[{uid}] Hangup detected in node: ({node.id}) next node: ({next_node_id})"
+                )
+                if not next_node_id:
+                    reason = "on_hangup_node_not_found"
+                    await channel.update_ivr(node_id=None, state=ChannelState.HANGUP)
+                    break
+
+                await channel.update_ivr(node_id=next_node_id, state=ChannelState.HANGUP)
+            except Exception:
+                reason = "unexpected_error"
+                log.exception(f"[{uid}] Exception in algorithm")
+                break
+
+            log.debug(
+                f"[{uid}] Finished node: ({node.id}) State: ({channel.state}) type: ({node.type})"
+            )
 
         log.info(
-            f"[{channel.channel_uniqueid}] Executing [node: {node.id}] [state: {channel.state}]"
+            f"[{uid}] Flow finished reason ({reason}) "
+            f"state ({channel.state}) node ({getattr(node, 'id', None)})"
         )
-
-        try:
-            await node.run()
-        except AGIAppError as e:
-            if str(e.message) == "b'Error executing application, or hangup.'":
-                log.warning(f"[{channel.channel_uniqueid}] Hangup detected [node: {node.id}]")
-                return
-            log.error(f"[{channel.channel_uniqueid}] Error in node {node.id}", exc_info=e)
-            return
-
-        if channel.state == ChannelState.END:
-            log.debug(f"[{channel.channel_uniqueid}] The channel has terminated the flow")
-            await channel.update_ivr(node_id=ChannelState.START)
-            return
-
-        await self.algorithm()
 
 
 if __name__ == "__main__":

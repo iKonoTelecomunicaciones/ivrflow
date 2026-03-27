@@ -21,12 +21,6 @@ class SetVariable(Base):
     def o_connection(self) -> str:
         return self.get_o_connection()
 
-    async def _update_node(self):
-        await self.channel.update_ivr(
-            node_id=self.o_connection,
-            state=ChannelState.END if not self.o_connection else None,
-        )
-
     async def run(self):
         self.log.info(f"[{self.channel.channel_uniqueid}] Entering set_variable node {self.id}")
 
@@ -35,4 +29,4 @@ class SetVariable(Base):
 
         await self.asterisk_conn.agi.set_variable(key_str, value_str)
 
-        await self._update_node()
+        await self._update_node(o_connection=self.o_connection)

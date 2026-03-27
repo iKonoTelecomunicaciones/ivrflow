@@ -21,12 +21,6 @@ class DatabasePut(Base):
     def o_connection(self) -> str:
         return self.get_o_connection()
 
-    async def _update_node(self):
-        await self.channel.update_ivr(
-            node_id=self.o_connection,
-            state=ChannelState.END if not self.o_connection else None,
-        )
-
     async def run(self):
         self.log.info(f"[{self.channel.channel_uniqueid}] Entering database_put node {self.id}")
         for entry, variable in self.entries.items():
@@ -36,4 +30,4 @@ class DatabasePut(Base):
                 f"[{self.channel.channel_uniqueid}] Send family,key:{entry} with value:{variable} result {db_result.result}"
             )
 
-        await self._update_node()
+        await self._update_node(o_connection=self.o_connection)
