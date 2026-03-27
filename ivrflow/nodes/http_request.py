@@ -137,9 +137,7 @@ class HTTPRequest(Switch):
                     o_connection = await self.get_case_by_id(id=response.status)
 
                 if o_connection:
-                    await self.channel.update_ivr(
-                        node_id=o_connection, state=ChannelState.END if not self.cases else None
-                    )
+                    await self._update_node(o_connection=o_connection, cases=self.cases)
             return response.status, None
 
         variables = {}
@@ -188,9 +186,7 @@ class HTTPRequest(Switch):
             o_connection = self.get_o_connection()
 
         if o_connection:
-            await self.channel.update_ivr(
-                node_id=o_connection, state=ChannelState.END if not self.cases else None
-            )
+            await self._update_node(o_connection=o_connection, cases=self.cases)
 
         if variables:
             await self.channel.set_variables(variables=variables)

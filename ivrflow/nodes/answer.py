@@ -17,12 +17,6 @@ class Answer(Base):
     def o_connection(self) -> str:
         return self.render_data(self.content.get("o_connection", ""))
 
-    async def _update_node(self):
-        await self.channel.update_ivr(
-            node_id=self.o_connection,
-            state=ChannelState.END if not self.o_connection else None,
-        )
-
     async def run(self):
         self.log.info(f"[{self.channel.channel_uniqueid}] Entering answer node {self.id}")
 
@@ -31,4 +25,4 @@ class Answer(Base):
             f"[{self.channel.channel_uniqueid}] Answer node {self.id} result: {result.result}"
         )
 
-        await self._update_node()
+        await self._update_node(o_connection=self.o_connection)

@@ -72,7 +72,4 @@ class Subroutine(Base):
         o_connection = self.render_data(self.content.o_connection)
         if lifo_stack.empty() or last_node == self.id:
             self.log.debug(f"[{self.channel.channel_uniqueid}] Go to next node: '{o_connection}'")
-            await self.channel.update_ivr(
-                node_id=o_connection,
-                state=ChannelState.END if not o_connection else None,
-            )
+            await self._update_node(o_connection=o_connection)

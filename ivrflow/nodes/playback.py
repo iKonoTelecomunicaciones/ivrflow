@@ -35,12 +35,6 @@ class Playback(Base):
     def sample_offset(self) -> int:
         return self.render_data(data=self.content.sample_offset)
 
-    async def _update_node(self):
-        await self.channel.update_ivr(
-            node_id=self.o_connection,
-            state=ChannelState.END if not self.o_connection else None,
-        )
-
     async def run(self) -> None:
         self.log.info(f"[{self.channel.channel_uniqueid}] Entering playback node {self.id}")
 
@@ -55,4 +49,4 @@ class Playback(Base):
             filename=sound_path, escape_digits=self.escape_digits, sample_offset=self.sample_offset
         )
 
-        await self._update_node()
+        await self._update_node(o_connection=self.o_connection)

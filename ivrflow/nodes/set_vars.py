@@ -21,12 +21,6 @@ class SetVars(Base):
     def o_connection(self) -> str:
         return self.get_o_connection()
 
-    async def _update_node(self):
-        await self.channel.update_ivr(
-            node_id=self.o_connection,
-            state=ChannelState.END if not self.o_connection else None,
-        )
-
     async def run(self):
         """This function runs the set_var node."""
         self.log.info(f"[{self.channel.channel_uniqueid}] Entering set_vars node {self.id}")
@@ -49,4 +43,4 @@ class SetVars(Base):
         except ValueError as e:
             self.log.warning(f"[{self.channel.channel_uniqueid}] Error: {e}")
 
-        await self._update_node()
+        await self._update_node(o_connection=self.o_connection)
