@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from contextlib import asynccontextmanager
+from contextvars import ContextVar
+from dataclasses import dataclass
 from logging import Logger, getLogger
 from typing import Any, Dict, List
 
@@ -10,6 +13,15 @@ from ..channel import Channel
 from ..config import Config
 from ..db.channel import ChannelState
 from ..utils import Util
+
+
+@dataclass
+class AGIContext:
+    asterisk_conn: Any
+    http_session: Any
+
+
+_agi_ctx_var: ContextVar[AGIContext | None] = ContextVar("ivrflow_agi_ctx", default=None)
 
 
 def convert_to_int(item: Any) -> Dict | List | int:
@@ -41,11 +53,20 @@ class Base:
     config: Config
     content: object
     channel: Channel
-    session: ClientSession
 
     def __init__(self, default_variables: Dict, channel: Channel) -> None:
         self.default_variables = default_variables
         self.channel = channel
+
+    @property
+    def asterisk_conn(self) -> ClientSession | None:
+        ctx = _agi_ctx_var.get()
+        return ctx.asterisk_conn if ctx else None
+
+    @property
+    def session(self) -> ClientSession | None:
+        ctx = _agi_ctx_var.get()
+        return ctx.http_session if ctx else None
 
     @property
     def id(self) -> str:
@@ -56,10 +77,8 @@ class Base:
         return self.content.type
 
     @classmethod
-    def init_cls(cls, config: Config, asterisk_conn: ClientSession, session: ClientSession):
+    def init_cls(cls, config: Config) -> None:
         cls.config = config
-        cls.asterisk_conn = asterisk_conn
-        cls.session = session
 
     @abstractmethod
     async def run(self):
@@ -133,3 +152,14 @@ class Base:
             state = ChannelState.END
 
         await self.channel.update_ivr(node_id=o_connection, state=state)
+
+    @classmethod
+    @asynccontextmanager
+    async def agi_ctx(cls, *, asterisk_conn: Any, http_session: Any):
+        token = _agi_ctx_var.set(
+            AGIContext(asterisk_conn=asterisk_conn, http_session=http_session)
+        )
+        try:
+            yield
+        finally:
+            _agi_ctx_var.reset(token)
