@@ -53,6 +53,7 @@ class LLMMiddleware(Base):
 
     async def run(self, extended_json: Dict) -> Tuple[int, str]:
         """Generate a text from a prompt and return the status code and the text."""
+        self.log.info(f"[{self.channel.channel_uniqueid}] Running LLM middleware {self.id}")
 
         request_body = {}
 

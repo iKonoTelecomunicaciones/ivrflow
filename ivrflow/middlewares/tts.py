@@ -50,7 +50,7 @@ class TTSMiddleware(Base):
 
     async def run(self, extended_data: Dict) -> Tuple[int, str]:
         """Syntehtize the text and return the status code and the file path."""
-
+        self.log.info(f"[{self.channel.channel_uniqueid}] Running TTS middleware {self.id}")
         request_body = {}
 
         if self.headers:
