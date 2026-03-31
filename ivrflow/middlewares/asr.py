@@ -56,11 +56,20 @@ class ASRMiddleware(Base):
         return self.render_data(self.content.json)
 
     async def run(self, extended_data: Dict):
+        self.log.info(f"[{self.channel.channel_uniqueid}] Running ASR middleware {self.id}")
+
         record_suffix = sqids.encode([int(time())])
         record_filename = f"{self.channel.channel_uniqueid}_{record_suffix}"
 
-        if extended_data.get("prompt_file"):
-            await self.asterisk_conn.agi.stream_file(extended_data.get("prompt_file"))
+        if prompt_file := extended_data.get("prompt_file"):
+            self.log.debug(
+                f"[{self.channel.channel_uniqueid}] Playing file ({prompt_file}) on channel"
+            )
+            await self.asterisk_conn.agi.stream_file(prompt_file)
+
+        self.log.debug(
+            f"[{self.channel.channel_uniqueid}] Recording file ({record_filename}) on channel"
+        )
 
         result = await self.asterisk_conn.agi.record_file(
             filename=record_filename,
@@ -74,9 +83,12 @@ class ASRMiddleware(Base):
         await self.channel.set_variable("record_path_variable", file_name_recorded)
 
         await self.channel.set_variable("asr_file_path", record_filename)
-        if extended_data.get("progress_sound"):
+        if progress_sound := extended_data.get("progress_sound"):
+            self.log.debug(
+                f"[{self.channel.channel_uniqueid}] Playing file ({progress_sound}) on channel"
+            )
             (_, result) = await gather(
-                self.asterisk_conn.agi.stream_file(extended_data.get("progress_sound")),
+                self.asterisk_conn.agi.stream_file(progress_sound),
                 self.http_request(),
             )
         else:
