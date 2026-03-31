@@ -188,16 +188,19 @@ class IVRFlow(AGIView):
             cls.ami_manager = None
 
     async def sip(self):
-        await self.algorithm()
+        async with Base.agi_ctx(asterisk_conn=self.request, http_session=self.http_client):
+            await self.algorithm()
 
     async def local(self):
-        await self.algorithm()
+        async with Base.agi_ctx(asterisk_conn=self.request, http_session=self.http_client):
+            await self.algorithm()
 
     async def dahdi(self):
-        await self.algorithm()
+        async with Base.agi_ctx(asterisk_conn=self.request, http_session=self.http_client):
+            await self.algorithm()
 
     async def post_init(self) -> Tuple[Flow, Channel]:
-        Base.init_cls(config=config, asterisk_conn=self.request, session=self.http_client)
+        Base.init_cls(config=config)
         uniqueid: str = self.request.headers["agi_uniqueid"]
 
         channel = await Channel.get_by_channel_uniqueid(channel_uniqueid=uniqueid)
