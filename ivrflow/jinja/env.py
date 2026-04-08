@@ -6,7 +6,6 @@ from .globals import register_globals
 from .tests import register_tests
 
 jinja_env = Environment(
-    autoescape=True,
     loader=BaseLoader,
     extensions=[
         AnsibleCoreFiltersExtension,

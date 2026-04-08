@@ -1,12 +1,12 @@
-from typing import TYPE_CHECKING, Dict, List
+import json
+from typing import TYPE_CHECKING
 
 from aiohttp import BasicAuth, ClientTimeout, ContentTypeError
-from jsonpath_ng import parse
 
 from ..channel import Channel
-from ..db.channel import ChannelState
 from ..models import HTTPRequest as HTTPRequestModel
 from ..utils import Util
+from ..utils.flags import RenderFlags
 from .switch import Switch
 
 if TYPE_CHECKING:
@@ -14,12 +14,12 @@ if TYPE_CHECKING:
 
 
 class HTTPRequest(Switch):
-    HTTP_ATTEMPTS: Dict = {}
+    HTTP_ATTEMPTS: dict = {}
 
     middleware: "HTTPMiddleware" = None
 
     def __init__(
-        self, http_request_content: HTTPRequestModel, channel: Channel, default_variables: Dict
+        self, http_request_content: HTTPRequestModel, channel: Channel, default_variables: dict
     ) -> None:
         Switch.__init__(
             self, http_request_content, channel=channel, default_variables=default_variables
@@ -36,57 +36,61 @@ class HTTPRequest(Switch):
         return self.render_data(self.content.url)
 
     @property
-    def http_variables(self) -> Dict:
+    def http_variables(self) -> dict:
         return self.render_data(self.content.variables)
 
     @property
-    def cookies(self) -> Dict:
+    def cookies(self) -> dict:
         return self.render_data(self.content.cookies)
 
     @property
-    def headers(self) -> Dict:
+    def headers(self) -> dict:
         return self.render_data(self.content.headers)
 
     @property
-    def basic_auth(self) -> Dict:
+    def basic_auth(self) -> dict:
         return self.render_data(self.content.basic_auth)
 
     @property
-    def query_params(self) -> Dict:
+    def query_params(self) -> dict:
         return self.render_data(self.content.query_params)
 
     @property
-    def data(self) -> Dict:
+    def data(self) -> dict:
         return self.render_data(self.content.data)
 
     @property
-    def json(self) -> Dict:
-        return self.render_data(self.content.json)
+    def json(self) -> dict:
+        body = self.content.get("json", "")
+        if isinstance(body, dict):
+            body = json.dumps(body)
+        body = Util.remove_jinja_markers(body)
+        return self.render_data(body, flags=RenderFlags.CUSTOM_ESCAPE | RenderFlags.LITERAL_EVAL)
 
     @property
-    def context_params(self) -> Dict[str, str]:
+    def context_params(self) -> dict[str, str]:
         return {"channel_uniqueid": self.channel.channel_uniqueid}
 
-    def prepare_request(self) -> Dict:
+    def prepare_request(self) -> dict:
         request_body = {}
 
-        if self.query_params:
-            request_body["params"] = self.query_params
+        if _query_params := self.query_params:
+            request_body["params"] = _query_params
 
-        if self.basic_auth:
+        if _basic_auth := self.basic_auth:
             request_body["auth"] = BasicAuth(
-                login=self.basic_auth["login"],
-                password=self.basic_auth["password"],
+                login=_basic_auth["login"],
+                password=_basic_auth["password"],
             )
 
-        if self.headers:
-            request_body["headers"] = self.headers
+        if _headers := self.headers:
+            request_body["headers"] = _headers
 
-        if self.data:
-            request_body["data"] = self.data
+        if _data := self.data:
+            request_body["data"] = _data
 
-        if self.json:
-            request_body["json"] = self.json
+        if _json := self.json:
+            request_body["json"] = _json
 
         return request_body
 
@@ -110,11 +114,14 @@ class HTTPRequest(Switch):
         else:
             request_params_ctx = {}
 
+        _method = self.method
+        _url = self.url
+
         try:
             timeout = ClientTimeout(total=self.config["ivrflow.timeouts.http_request"])
             response = await self.session.request(
-                self.method,
-                self.url,
+                _method,
+                _url,
                 **request_body,
                 trace_request_ctx=request_params_ctx,
                 timeout=timeout,
@@ -128,7 +135,7 @@ class HTTPRequest(Switch):
             return 500, e
 
         self.log.debug(
-            f"[{self.channel.channel_uniqueid}] node: {self.id} method: {self.method} url: {self.url} status: {response.status}"
+            f"[{self.channel.channel_uniqueid}] node: {self.id} method: {_method} url: {_url} status: {response.status}"
         )
 
         if response.status == 401:
@@ -143,8 +150,8 @@ class HTTPRequest(Switch):
         variables = {}
         o_connection = None
 
-        if self.cookies:
-            for cookie in self.cookies:
+        if _cookies := self.cookies:
+            for cookie in _cookies:
                 variables[cookie] = response.cookies.output(cookie)
 
         try:
@@ -152,8 +159,10 @@ class HTTPRequest(Switch):
         except ContentTypeError:
             response_data = {}
 
-        if isinstance(response_data, (dict, list, str)) and self.http_variables:
-            for variable in self.http_variables:
+        _http_variables = self.http_variables
+
+        if isinstance(response_data, (dict, list, str)) and _http_variables:
+            for variable in _http_variables:
                 if isinstance(response_data, str):
                     try:
                         variables[variable] = self.render_data(response_data)
@@ -162,10 +171,10 @@ class HTTPRequest(Switch):
                     break
                 else:
                     default_value = self.default_variables.get("jq_default_value")
-                    jq_result: dict = Util.jq_compile(self.http_variables[variable], response_data)
+                    jq_result: dict = Util.jq_compile(_http_variables[variable], response_data)
                     if jq_result.get("status") != 200:
                         self.log.error(
-                            f"""[{self.channel.channel_uniqueid}] Error parsing '{self.http_variables[variable]}' with jq
+                            f"""[{self.channel.channel_uniqueid}] Error parsing '{_http_variables[variable]}' with jq
                             on variable '{variable}'. Set to default value ({default_value}).
                             Error message: {jq_result.get("error")}, Status: {jq_result.get("status")}"""
                         )
