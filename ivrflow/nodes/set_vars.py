@@ -1,13 +1,11 @@
-from typing import Dict, List
-
-from ..channel import Channel, ChannelState
+from ..channel import Channel
 from ..models import SetVars as SetVarsModel
 from .base import Base
 
 
 class SetVars(Base):
     def __init__(
-        self, default_variables: Dict, set_vars_content: SetVarsModel, channel: Channel
+        self, default_variables: dict, set_vars_content: SetVarsModel, channel: Channel
     ) -> None:
         super().__init__(default_variables, channel=channel)
         self.log = self.log.getChild(set_vars_content.id)
@@ -24,7 +22,8 @@ class SetVars(Base):
     async def run(self):
         """This function runs the set_var node."""
         self.log.info(f"[{self.channel.channel_uniqueid}] Entering set_vars node {self.id}")
-        if not self.variables:
+        _variables = self.variables
+        if not _variables:
             self.log.warning(
                 f"[{self.channel.channel_uniqueid}] The variables in {self.id} have not been set because they are empty"
             )
@@ -32,12 +31,12 @@ class SetVars(Base):
 
         try:
             # Set variables
-            set_vars: Dict = self.variables.get("set")
+            set_vars: dict = _variables.get("set")
             if set_vars:
                 await self.channel.set_variables(variables=set_vars)
 
             # Unset variables
-            unset_vars: List = self.variables.get("unset")
+            unset_vars: list = _variables.get("unset")
             if unset_vars:
                 await self.channel.del_variables(variables=unset_vars)
         except ValueError as e:

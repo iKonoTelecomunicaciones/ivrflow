@@ -72,7 +72,7 @@ class Switch(Base):
             )
             result = "except"
 
-        if not result:
+        if result is None:
             self.log.debug(
                 f"[{self.channel.channel_uniqueid}] Validation value is not found, validate case by case in [{self.id}]"
             )

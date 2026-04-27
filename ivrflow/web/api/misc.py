@@ -1,17 +1,18 @@
 from __future__ import annotations
 
-import traceback
 from http import HTTPStatus
 from logging import Logger, getLogger
 
 import yaml
 from aiohttp import web
-from jinja2.exceptions import TemplateSyntaxError, UndefinedError
 
 from ...flow_utils import FlowUtils
+from ...utils.flags import RenderFlags
 from ...utils.util import Util as Utils
 from ..base import get_flow_utils, routes
-from ..responses import json_response
+from ..docs.misc import check_template_doc
+from ..responses import json_response, resp
+from ..util import docstring, generate_uuid
 
 log: Logger = getLogger("ivrflow.api.misc")
 
@@ -55,116 +56,68 @@ async def get_id_middlewares(request: web.Request) -> web.Response:
 
 
 @routes.post("/v1/mis/check_template")
+@docstring(check_template_doc)
 async def check_template(request: web.Request) -> web.Response:
-    """
-    ---
-    summary: Check jinja syntax
-    description: Check if the provided jinja template is valid
-    tags:
-        - Mis
-    requestBody:
-        required: true
-        content:
-            application/x-www-form-urlencoded:
-                schema:
-                    type: object
-                    properties:
-                        template:
-                            type: string
-                            description: The jinja template to be checked
-                            example: "Hello {{ name }}"
-                        variables:
-                            type: string
-                            description: >
-                                The variables to be used in the template, in `yaml` or `json` format
-                            example: "{'name': 'world'}"
-                    required:
-                        - template
-    responses:
-        '200':
-            $ref: '#/components/responses/CheckTemplateSuccess'
-        '400':
-            $ref: '#/components/responses/CheckTemplateBadRequest'
-        '422':
-            $ref: '#/components/responses/CheckTemplateUnprocessable'
-    """
-
-    trace_id = Utils.generate_uuid()
-    dict_variables = {}
+    trace_id = generate_uuid()
+    log.info(f"({trace_id}) -> '{request.method}' '{request.path}' Checking template")
 
     try:
         data = await request.post()
     except Exception as e:
-        return json_response(
-            status=HTTPStatus.BAD_REQUEST,
-            message=f"Error reading data: {e}",
-        )
+        return resp.bad_request(f"Error reading data: {e}", trace_id)
 
     template = data.get("template")
     variables = data.get("variables")
+    string_format = data.get("string_format", False)
+    flags = data.get(
+        "flags",
+        {
+            "REMOVE_QUOTES": True,
+            "LITERAL_EVAL": True,
+            "CONVERT_TO_TYPE": True,
+            "CUSTOM_ESCAPE": False,
+        },
+    )
+
+    try:
+        flags = yaml.safe_load(flags)
+    except Exception as e:
+        pass
+    finally:
+        if not isinstance(flags, dict):
+            return resp.bad_request("The format of the flags is not valid", trace_id)
+
+    _flags = RenderFlags.RETURN_ERRORS
+    for flag, enabled in flags.items():
+        if enabled is True:
+            _flags |= getattr(RenderFlags, flag)
 
     log.info(f"({trace_id}) -> Checking jinja template with data: {data}")
 
     if not template:
-        return json_response(
-            status=HTTPStatus.BAD_REQUEST,
-            message="Template is required",
-        )
+        return resp.bad_request("Template is required", trace_id)
 
     if variables:
         try:
             dict_variables = yaml.safe_load(variables)
         except Exception as e:
             log.exception(e)
-            return json_response(
-                status=HTTPStatus.BAD_REQUEST,
-                message=f"Error parsing variables: {e}",
-            )
+            return resp.bad_request(f"Error format variables: {e}", trace_id)
         else:
             if not isinstance(dict_variables, dict):
-                return json_response(
-                    status=HTTPStatus.BAD_REQUEST,
-                    message="Variables must be a dictionary",
-                )
+                return resp.bad_request("The format of the variables is not valid", trace_id)
     try:
-        rendered_data = Utils.render_data(
-            data=template, default_variables=dict_variables, return_errors=True
-        )
-    except TemplateSyntaxError as e:
-        return json_response(
-            status=HTTPStatus.UNPROCESSABLE_ENTITY,
-            message={
-                "func_name": e.name,
-                "filename": e.filename if e.filename else "<template>",
-                "line": e.lineno,
-                "error": e.message,
-            },
-        )
-    except UndefinedError as e:
-        tb_list = traceback.extract_tb(e.__traceback__)
-        traceback_info = tb_list[-1]
+        if RenderFlags.CUSTOM_ESCAPE in _flags:
+            dict_variables, changed = Utils.custom_escape(dict_variables, escape=False)
+            _flags = _flags | RenderFlags.CUSTOM_UNESCAPE if changed else _flags
 
-        func_name = traceback_info.name
-        filename = traceback_info.filename
-        line = traceback_info.lineno
-
-        return json_response(
-            status=HTTPStatus.UNPROCESSABLE_ENTITY,
-            message={
-                "func_name": func_name,
-                "filename": filename,
-                "line": line,
-                "error": str(e),
-            },
-        )
+        new_render_data = Utils.recursive_render(template, dict_variables, flags=_flags)
     except Exception as e:
-        return json_response(
-            status=HTTPStatus.BAD_REQUEST,
-            message=str(e),
-        )
+        return resp.internal_error(e, trace_id)
 
-    return json_response(
-        status=HTTPStatus.OK,
-        message="Template rendered successfully",
-        data=rendered_data,
-    )
+    response = {
+        "rendered": new_render_data,
+        **({"string_format": str(new_render_data)} if string_format else {}),
+    }
+
+    return resp.success_response(data=response, uuid=trace_id)

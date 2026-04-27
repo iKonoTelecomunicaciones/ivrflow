@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
 from logging import Logger, getLogger
-from typing import Any, Dict, List
+from typing import Any
 
 from aiohttp import ClientSession
 
@@ -13,6 +13,7 @@ from ..channel import Channel
 from ..config import Config
 from ..db.channel import ChannelState
 from ..utils import Util
+from ..utils.flags import RenderFlags
 
 
 @dataclass
@@ -24,7 +25,7 @@ class AGIContext:
 _agi_ctx_var: ContextVar[AGIContext | None] = ContextVar("ivrflow_agi_ctx", default=None)
 
 
-def convert_to_int(item: Any) -> Dict | List | int:
+def convert_to_int(item: Any) -> dict | list | int:
     if isinstance(item, dict):
         for k, v in item.items():
             item[k] = convert_to_int(v)
@@ -54,7 +55,7 @@ class Base:
     content: object
     channel: Channel
 
-    def __init__(self, default_variables: Dict, channel: Channel) -> None:
+    def __init__(self, default_variables: dict, channel: Channel) -> None:
         self.default_variables = default_variables
         self.channel = channel
 
@@ -84,13 +85,21 @@ class Base:
     async def run(self):
         pass
 
-    def render_data(self, data: dict | list | str) -> dict | list | str:
-        """It renders the data using the default variables and the channel variables.
+    def render_data(
+        self,
+        data: dict | list | str,
+        flags: RenderFlags = RenderFlags.CONVERT_TO_TYPE
+        | RenderFlags.LITERAL_EVAL
+        | RenderFlags.REMOVE_QUOTES,
+    ) -> dict | list | str:
+        """It renders the data using the default variables and the room variables.
 
         Parameters
         ----------
         data : Any
             The data to be rendered.
+        flags : RenderFlags
+            The flags to be used in the rendering.
 
         Returns
         -------
@@ -98,11 +107,17 @@ class Base:
 
         """
 
-        return Util.render_data(
-            data=data,
-            default_variables=self.default_variables,
-            all_variables=self.channel._variables,
-        )
+        if not (isinstance(data, (str, dict, list)) and data):
+            return data
+
+        variables = self.default_variables | self.channel._variables
+
+        if RenderFlags.CUSTOM_ESCAPE in flags:
+            variables, changed = Util.custom_escape(variables, escape=True)
+            if changed:
+                flags |= RenderFlags.CUSTOM_UNESCAPE
+
+        return Util.recursive_render(data=data, variables=variables, flags=flags)
 
     def get_o_connection(self) -> str:
         """It returns the ID of the next node to be executed.
