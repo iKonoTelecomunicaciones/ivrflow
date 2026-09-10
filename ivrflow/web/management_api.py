@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict
 
 import aiohttp_cors
 from aioagi.ami.manager import AMIManager
@@ -45,6 +44,7 @@ class ManagementAPI:
         )
 
         swagger.add_routes(routes)
+        # swagger.spec["servers"] = [{"url": config["server.base_path"]}]
 
         cors = aiohttp_cors.setup(
             self.app,
@@ -61,7 +61,7 @@ class ManagementAPI:
         for route in list(self.app.router.routes()):
             cors.add(route)
             if route.method in ["post", "POST"]:
-                route_info: Dict = route.get_info()
+                route_info: dict = route.get_info()
                 if route_info.get("path") not in self._get_registered_options_paths():
                     swagger.add_options(
                         path=route_info.get("path") or route_info.get("formatter"),
