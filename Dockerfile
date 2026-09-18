@@ -1,5 +1,5 @@
 # Building stage (host OS)
-FROM python:3.12.3 AS base
+FROM python:3.12 AS base
 
 # set the working directory in the container
 WORKDIR /app
@@ -34,7 +34,7 @@ ENTRYPOINT watchmedo auto-restart --recursive --pattern="*.py" --directory="." -
 
 
 
-FROM python:3.12.3-slim AS config
+FROM python:3.12-slim AS config
 
 # set the working directory in the container
 WORKDIR /app
@@ -52,7 +52,7 @@ ENTRYPOINT watchmedo auto-restart --recursive --pattern="*.yaml" --directory="/d
 
 
 
-FROM python:3.12.3-slim AS runtime
+FROM python:3.12-slim AS runtime
 
 # set the working directory in the container
 WORKDIR /app

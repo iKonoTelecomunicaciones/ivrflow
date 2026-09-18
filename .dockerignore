@@ -3,3 +3,4 @@ Dockerfile
 *.toml
 __pycache__
 .pre-commit*
+graphify-out
